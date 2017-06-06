@@ -1,0 +1,75 @@
+<template name="travelfolder_tpl">
+	<div class="content external-search-content">
+		<div class="title">
+			<h2>Travelfolder</h2>
+		</div>
+		<div>
+
+			<div class="travelfolder-admin">
+				<form class="permissions" accept-charset="utf-8">
+
+					<button class="ask-permission">Ask user for permissions</button>
+               </form>
+			</div>
+			<div class="travels">
+				<form class="journeys" accept-charset="UTF-8">
+					<button class="get-journeys">Get user's journeys</button>
+				</form>
+				<form class="add-journey">
+					<label for="journeytitle">Journey:</label><input type="text" name="journeytitle" class="input-journey" />
+					<button class="journeyadd">
+						Add journey
+					</button>
+				</form>
+
+               <!-- <p>{{userId}}</p>-->
+				{{#if journeys.length}}
+				<ul class="places-list">
+
+					{{#each journey in journeys}}
+						<li data-resultindex="{{journey.JourneyId}}" class="li_journey">
+							<h3 class="journey">{{journey.title}}</h3>
+								<ul class="segments">
+									{{#each segment in journey.segments}}
+										<li class="segment">
+											<label for="operator" class="labelsegment">Operator:</label><input type="text" value="{{segment.operator}}" readonly="true" name="operator" class="inputsegment" />
+
+													<label for="type" title="Type of segment (ﬂight, car, hotel, train)" class="labelsegment">Type:</label><input type="text" value="{{segment.type}}" readonly="true" name="type" class="inputsegment" />
+											<label for="when" title="Time of the segment, in unix milliseconds format" class="labelsegment">When:</label><input type="text" value="{{segment.when}}" readonly="true" name="when" class="inputsegment" />
+											<label for="class" title="Class of room/ticket/seat/cabin" class="labelsegment">Class:</label><input type="text" value="{{segment.class}}" readonly="true" name="class" class="inputsegment" />
+											<label for="identifier" title="Segment vessel identification (such as a flight number)" class="labelsegment">Identifier:</label><input type="text" value="{{segment.identifier}}" readonly="true" name="identifier" class="inputsegment" />
+
+											<label for="locator" title=" Record locator (such as a confirmation number)" class="labelsegment">Locator:</label><input type="text" value="{{segment.locator}}" readonly="true" name="locator" class="inputsegment" />
+											<label for="location" title="Location of segment start (such as an airport)" class="labelsegment">Location:</label><input type="text" value="{{segment.location}}" readonly="true" name="location" class="inputsegment" />
+											<label for="position" title="Seat location" class="labelsegment">Position:</label><input type="text" value="{{segment.position}}" readonly="true" name="position" class="inputsegment" />
+										</li>
+										{{/each}}
+								</ul>
+                        <form class="add-segment" id="{{journey.JourneyId}}">
+							<label for="operator" title="Operating entity (such as an airline or hotel brand)" class="labelsegment">Operator:</label><input type="text" value="{{segment.operator}}"  name="operator" class="inputsegment" />
+
+							<label for="type" title="Type of segment (ﬂight, car, hotel, train)" class="labelsegment">Type:</label><input type="text" value="{{segment.type}}"  name="type" class="inputsegment" />
+							<label for="when" title="Time of the segment, in unix milliseconds format" class="labelsegment">When:</label><input type="text" value="{{segment.when}}"  name="when" class="inputsegment datetime-field" />
+							<label for="class" title="Class of room/ticket/seat/cabin" class="labelsegment">Class:</label><input type="text" value="{{segment.class}}"  name="class" class="inputsegment" />
+							<label for="identifier" title="Segment vessel identification (such as a flight number)" class="labelsegment">Identifier:</label><input type="text"  name="identifier" class="inputsegment" />
+							<label for="locator" title=" Record locator (such as a confirmation number)" class="labelsegment">Locator:</label><input type="text"  name="locator" class="inputsegment" />
+							<label for="location" title="Location of segment start (such as an airport)" class="labelsegment">Location:</label><input type="text" name="location" class="inputsegment" />
+							<label for="position" title="Seat location" class="labelsegment">Position:</label><input type="text" name="position" class="inputsegment" />
+						<button class="segmentadd">
+							Add segment
+						</button>
+						</form>
+						</li>
+					{{/each}}
+				</ul>
+			    {{else}}
+				<p>User has no journeys at the moment</p>
+						{{/if}}
+			</div>
+
+		</div>
+
+	</div>
+</template>
+
+
