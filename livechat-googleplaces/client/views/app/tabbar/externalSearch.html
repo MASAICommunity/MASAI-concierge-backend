@@ -1,0 +1,154 @@
+<template name="google_places_search">
+	<div class="content external-search-content">
+		<div class="title">
+			<h2>Google Places Search</h2>
+		</div>
+		<div>
+
+			<div class="input-group">
+
+					<p>
+					<input type="checkbox" name="hotels"/><label for="hotels">Hotels</label>
+					<input type="checkbox" name="restaurants"/><label for="restaurants">Restaurants</label>
+						<input type="checkbox" name="sehenswürdigkeiten"/><label for="sehenswürdigkeiten">Sehenswürdigkeiten</label></p>
+					<p><label for="Ort">Ort:</label>
+						<input type="text" name="Ort" class="search_box_input"/>
+					<button class="search_button"><i class="icon-search"></i></button>
+					{{#if show_places}}
+						<button class="send_ok"><i class="icon-paper-plane"></i></button>
+						<button class="delete_results"><i class="icon-cancel"></i></button>
+					{{/if}}
+						</p>
+
+
+			</div>
+
+		</div>
+		<div id="places_container">
+			{{#if show_places}}
+				<h2 class="result_h2">Results</h2>
+				<ul class="places-list">
+					{{#each place in places}}
+						<li data-resultindex="{{@index}}" class="li_place_result">
+							<div class="div_result" data-result-index="{{@index}}"><h3
+									class="place">{{place.google_result.name}}</h3><img class="result_img"
+																						src="{{place.references}}"/>
+							</div>
+						</li>
+					{{/each}}
+				</ul>
+			{{/if}}
+		</div>
+	</div>
+</template>
+
+<template name="search_results">
+	{{places}}
+
+	<ul class="places-list">
+		{{#each place in places}}
+			<li data-resultindex="{{@index}}">
+				<div><h3>{{place.google_result.name}}</h3><img src="{{place.references}}"/></div>
+			</li>
+		{{/each}}
+	</ul>
+</template>
+
+
+<template name="dynamic_redlink_default">
+	<div class="query-template">
+		<div class="knowledge-title">{{queryType}}</div>
+		<div class="knowledge-informations-wrapper">
+			{{#each filledQuerySlots }}
+				<div class="knowledge-base-label">{{role}}</div>
+				<div class="knowledge-base-value">{{clientValue}}</div>
+			{{/each}}
+		</div>
+	</div>
+</template>
+
+<template name="dynamic_redlink_Produkt">
+	<div class="query-template">
+		<div class="knowledge-title">{{queryType}}</div>
+		<div class="value-line-wrapper">
+			{{>dynamic_tpl_redlinkItem (forItem 'product') }}
+			{{>dynamic_tpl_redlinkItem (forItem 'what') }}
+		</div>
+	</div>
+</template>
+
+<template name="dynamic_redlink_Reiseplanung">
+	<div class="query-template">
+		<div class="knowledge-title">{{queryType}}</div>
+		<div class="value-line-wrapper">
+			{{>dynamic_tpl_redlinkItem (forItem 'from') }}
+			<span class="icon-wrapper"><i class="icon-exchange"></i><i class="icon-spinner"></i></span>
+			{{>dynamic_tpl_redlinkItem (forItem 'to') }}
+		</div>
+		<div class="value-line-wrapper">
+			{{>dynamic_tpl_redlinkItem (forItem 'card') }}
+			{{>dynamic_tpl_redlinkItem (forItem 'class') }}
+		</div>
+		<div class="value-line-wrapper">
+			{{>dynamic_tpl_redlinkItem (forItem 'depart') }}
+			<span class="icon-wrapper"><i class="icon-exchange"></i><i class="icon-spinner"></i></span>
+			{{>dynamic_tpl_redlinkItem (forItem 'arrive') }}
+		</div>
+	</div>
+</template>
+
+<template name="dynamic_redlink_Zuginformation">
+	<div class="query-template">
+		<div class="knowledge-title">{{queryType}}</div>
+		<div class="value-line-wrapper">
+			{{>dynamic_tpl_redlinkItem (forItem 'train') }}
+			<span class="value-seperator"></span>
+			{{>dynamic_tpl_redlinkItem (forItem 'date') }}
+		</div>
+		<div class="value-line-wrapper">
+			{{>dynamic_tpl_redlinkItem (forItem 'from') }}
+			<span class="icon-wrapper"><i class="icon-exchange"></i><i class="icon-spinner"></i></span>
+			{{>dynamic_tpl_redlinkItem (forItem 'to') }}
+		</div>
+		<div class="value-line-wrapper">
+			{{>dynamic_tpl_redlinkItem (forItem 'what') }}
+		</div>
+	</div>
+</template>
+
+<template name="dynamic_redlink_Umkreissuche">
+	<div class="query-template">
+		<div class="knowledge-title">{{queryType}}</div>
+
+		<div class="value-line-wrapper">
+			{{>dynamic_tpl_redlinkItem (forItem 'location') }}
+			<span class="value-seperator"></span>
+			{{>dynamic_tpl_redlinkItem (forItem 'what') }}
+		</div>
+		<div class="value-line-wrapper">
+			{{>dynamic_tpl_redlinkItem (forItem 'start') }}
+			<span class="icon-wrapper"><i class="icon-exchange"></i><i class="icon-spinner"></i></span>
+			{{>dynamic_tpl_redlinkItem (forItem 'end') }}
+		</div>
+	</div>
+</template>
+
+<template name="dynamic_tpl_redlinkItem">
+	<div class="field-with-label" data-token-type="{{tokenType}}" data-slot-role="{{role}}"
+		 data-parent-tpl-index="{{parentTplIndex}}"
+		 data-token-index="{{tokenIndex}}">
+		<label for="{{htmlId}}" class="knowledge-base-label">{{_ label}}</label>
+		<div class="knowledge-input-wrapper">
+			<input id="{{htmlId}}" type="text" class="knowledge-base-value {{itemStyle}}" value="{{item}}"/>
+			<div class="knowledge-base-tooltip">
+				<div class="knowledge-context-menu-item edit-item"><span class="icon-pencil"></span> Editieren</div>
+				<div class="knowledge-context-menu-item delete-item"><span class="icon-trash"></span> Löschen</div>
+				<div class="knowledge-context-menu-item chat-item {{inquiryStyle}}">
+					<span class="icon-chat"></span> Nachfragen
+				</div>
+			</div>
+			<div class="edit-icons-set"><span class="icon-cancel"></span><span class="icon-floppy"></span>
+			</div>
+		</div>
+	</div>
+</template>
