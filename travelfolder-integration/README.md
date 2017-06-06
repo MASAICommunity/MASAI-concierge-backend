@@ -3,7 +3,7 @@
 package zur integration in RocketChat, zur Installation siehe README im übergeordneten Ordner
 zu installierende npm-Pakete:
 ```
-jwt-deocde
+jwt-decode
 jsownwebtoken
 dynamodb-marshaler
 uuid4
