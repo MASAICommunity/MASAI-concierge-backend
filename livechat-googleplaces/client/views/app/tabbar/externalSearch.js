@@ -1,3 +1,5 @@
+const API_URL = "https://qjchuhm517.execute-api.eu-central-1.amazonaws.com/latest";
+
 for (var tpl in Template) {
 	if (Template.hasOwnProperty(tpl) && tpl.startsWith('dynamic_redlink_')) {
 		Template[tpl].onRendered(function () {
@@ -31,7 +33,7 @@ Meteor.startup(function(){
 	$(document).ready(function() {
 		var observer = new MutationObserver( function(mutations, observer) {
 
- $("li.message >div:contains('ir282jbq9b')").html(function(index,html){                                         return html.replace(/{(.*)}/, '<p><i>asked for permission</i></p>');                                 })      ;
+ $("li.message >div:contains('" + API_URL + "')").html(function(index,html){                                         return html.replace(/{(.*)}/, '<p><i>asked for permission</i></p>');                                 })      ;
  $('button.user.user-card-message.color-primary-font-color:contains("guest")').text($('.room-title').text());
      $("li.message >div:contains('denied')").html(function(index,html){                                         return html.replace(/{(.*)}/, '<p><i>permission denied</i></p>');                                 })      ;
 $("li.message >div:contains('granted')").html(function(index,html){                                         return html.replace(/{(.*)}/, '<p><i>permission granted</i></p>');                                 })      ;

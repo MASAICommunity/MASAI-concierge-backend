@@ -1,9 +1,11 @@
 import moment from 'moment';
 
-var locationChanged = false;
-var location = null;
 var message = null;
+var messageListenerRegistered = false;
+var travelfolderWindow = null;
 const GRANT_URL = '';
+const TRAVELFOLDER_URL = 'http://www.journey-concierge.com/';
+
 Template.visitorInfo_travelFolder.helpers({
 	user() {
 		const user = Template.instance().user.get();
@@ -207,12 +209,41 @@ Template.visitorInfo_travelFolder.events({
 
 		instance.action.set('forward');
 	},
-	'click #travelfolder' (event, instance){
-		locationchanged = false;
+	'click #travelfolder' (event, instance) {
+		// open travelfolder in own window
+		var w = 1000;
+        var h = 800;
+        // Fixes dual-screen position                         Most browsers      Firefox
+        var dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : screen.left;
+        var dualScreenTop = window.screenTop != undefined ? window.screenTop : screen.top;
+
+        var width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+        var height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+
+        var left = ((width / 2) - (w / 2)) + dualScreenLeft;
+        var top = ((height / 2) - (h / 2)) + dualScreenTop;
+
+		travelfolderWindow = 
+			window.open(TRAVELFOLDER_URL + 'redirect.html', 'com_journey_concierge', 'scrollbars=yes, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
+		
 		Meteor.call('masai:getJWT',instance.roomId,function(err, result) {
-			location= "https://travelfolder.masai.solutions/#/profile?userId=" + Gravatar.hash(result.user).slice(16);
+			if (!travelfolderWindow || travelfolderWindow.closed) {
+				message = null;
+				messageListenerRegistered = false;
+				return;
+			}
+		
+			if (result.user) {
+				result.userId = Gravatar.hash(result.user).slice(16);
+			}
+			
 			message = result;
-		}) ;
+			if (messageListenerRegistered) {
+				travelfolderWindow.postMessage({'msg': message}, "*");
+				message = null;
+				messageListenerRegistered = false;
+			}
+		});
 
 	},
 	'click .ask-permission'(event, template) {
@@ -221,7 +252,7 @@ Template.visitorInfo_travelFolder.events({
 		Meteor.call('sendMessage', {
 			"_id": Random.id(), "rid": template.roomId, "msg": JSON.stringify({
 				"url": GRANT_URL, "payload":
-					{ "scope": ["journey", "preference", "personal", "contact"] }
+					{ "scope": ["personal","contact","address_private","address_billing","esta","passport","journey","preference"] }
 			}) });
 	},
 	'submit .note-form' (event,template){
@@ -239,55 +270,23 @@ Template.visitorInfo_travelFolder.events({
 	}
 
 });
-Template.visitorInfo_travelFolder.onRendered(function(){
-	$(document).ready(
-		function(){
-			$("#travelfolder").fancybox({
-				'href' : "https://travelfolder.masai.solutions",
-				'width'				: '90%',
-				'height'			: '90%',
-				'autoScale'     	: false,
-				'transitionIn'		: 'none',
-				'transitionOut'		: 'none',
-				'type'				: 'iframe'
-			});
-
+		
+window.addEventListener('message', function(e) {
+    if (e.data && e.data === 'message_listener_registered') {
+		if (!travelfolderWindow || travelfolderWindow.closed) {
+			message = null;
+			messageListenerRegistered = false;
+			return;
 		}
-	)
-});
-
-Meteor.startup(function(){
-	if(Meteor.isClient) {
-		$(document).ready(function () {
-			var observer = new MutationObserver(function (mutations, observer) {
-
-				if (window.frames.length == 0)
-					return;
-				if(message) {
-					window.frames[0].postMessage({'msg': message}, "*");
-					message = null;
-				}
-
-				if(locationchanged)
-					return;
-				if(location){
-				window.frames[0].location = location;
-				location = null;
-
-				locationchanged = true;
-				}
-
-			});
-			observer.observe(document,
-				{
-					subtree: true,
-					attributes: true,
-					characterData: true
-				}
-			);
-
-		});}});
-
+		
+		messageListenerRegistered = true;
+        if (message) {
+			travelfolderWindow.postMessage({'msg': message}, "*");
+			message = null;
+			messageListenerRegistered = false;
+		}
+    }
+}, false);
 
 Template.visitorInfo_travelFolder.onCreated(function() {
 	this.visitorId = new ReactiveVar(null);

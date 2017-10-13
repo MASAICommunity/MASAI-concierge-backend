@@ -205,7 +205,7 @@ Meteor.methods({
 		token.iat = decodedToken.iat;
 
 		let newToken = jwt.sign(token, SECRET_KEY);
-		return {jwt: newToken, user: getUser(roomId)};
+		return {jwt: newToken, orginalresult:result, user: getUser(roomId)};
 	},
 });
 Meteor.methods({
