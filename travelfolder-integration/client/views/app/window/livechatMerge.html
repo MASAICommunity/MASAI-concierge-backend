@@ -1,0 +1,110 @@
+<template name="livechatMerge">
+	<section class="page-container page-list travelfoldercontent">
+		<header class="fixed-title border-component-color">
+
+			<h2 class="p-l-10 p-r-10 p-t-10">
+				<span class="room-title">Chat verschmelzen:
+				{{#with user}}
+					{{id}} {{name}}
+				{{/with}}
+				</span>
+			</h2>
+		</header>
+		<div class="content">
+			<table class="padded-table full-width">
+			<tr>
+				<th>
+				ChatID
+				</th>
+				<th>
+				Zusammengeführt In
+				</th>
+				<th>
+				Start Datum
+				</th>
+
+				<th>
+				Start Uhrzeit
+				</th>
+
+				<th>
+				End Datum
+				</th>
+
+				<th>
+				End Uhrzeit
+				</th>
+
+				<th>
+				Kommentar
+				</th>
+
+				<th>
+				Status
+				</th>
+				<th> </th>
+			</tr>
+			{{#with chats}}
+				{{#each chat in chats}}
+					<tr class='liveChatOpenRow {{#if chat.mergeTarget}}mergeChat{{/if}}'>
+						<td data-id='{{chat._id}}'>
+						{{chat.code}}
+						</td>
+						<td>
+						{{#if chat.mergedInto}}
+							{{chat.mergedInto}}
+						{{/if}}
+						</td>
+						<td>
+						{{formatDate chat.ts "DD.MM.YYYY"}}
+						</td>
+
+						<td>
+						{{formatDate chat.ts "HH:ss"}}
+						</td>
+
+						<td>
+						{{formatDate chat._updatedAt "DD.MM.YYYY"}}
+						</td>
+
+						<td>
+						{{formatDate chat._updatedAt "HH:ss"}}
+						</td>
+
+						<td>
+						{{#if chat.mcomment}}
+							{{chat.mcomment}}
+						{{else}}
+							{{chat.closecomment}}
+						{{/if}}
+						</td>
+
+						<td>
+						{{#if chat.open}}
+							Offen
+						{{else}}
+							Abgeschlossen
+						{{/if}}
+						</td>
+
+						<td>
+							{{#if chat.mergedInto}}
+							{{else}}
+								{{#if chat.mergeTarget}}
+								{{else}}
+										<input type="checkbox" class="mergechat" data-chat="{{chat._id}}" data-name="{{chat.code}}" name="chat{{chat._id}}">
+								{{/if}}
+							{{/if}}
+						</td>
+					</tr>
+				{{/each}}
+			{{/with}}
+			</table>
+
+			<div class="sa-confirm-button-container  p-l-10">
+				<button class="confirm button button-block p-10 mergebutton" tabindex="1">Zusammenführen</button>
+
+			</div>
+		</div>
+	</section>
+</template>

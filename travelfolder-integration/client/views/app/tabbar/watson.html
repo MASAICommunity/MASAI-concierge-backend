@@ -1,0 +1,64 @@
+<template name="watson_travelFolder">
+	<div class="content">
+
+		<div class="user-view {{showDetail}}">
+			<div class="about clearfix">
+				<div class="info">
+					<h3>Watson (Wissensbasis)</h3>
+				</div>
+
+				{{#with room}}
+					<div class="info">
+						<ul>
+							{{#if sms}}
+								<li>{{_ "SMS_Channel"}}</li>
+							{{/if}}
+							{{#if web}}
+								<li>{{_ "WEB_Channel"}}</li>
+							{{/if}}
+						</ul>
+					</div>
+				{{/with}}
+			</div>
+
+			<div class="info">
+				<p id="aboutWatson">
+				{{_ "About_Watson"}}
+				</p>
+
+				<div style="display:none;" id="loadinginfo">
+					<i class="fa fa-spin fa-spinner"></i> ... {{_ "Loading_Watson"}}
+				</div>
+				<div class="p-t-10 p-b-10">
+					<div id="watsonIntermediate" class="hint watsonhint" data-code="" data-watson="">
+						<button class="intermediateWatsonbutton button  button button-block">{{_ "Send_Intermediate_Request"}}</button>
+					</div>
+					<div id="watsonManualRequest" class="hint watsonhint" data-code="" data-watson="">
+						<h4 class="intentexpander"> {{_ "Custom_Request"}}</h4>
+						<div style="display:none;" class="collapseit">
+							<textarea class="customWatsonText full-width" style="margin-top: 10px" placeholder="{{_ "Custom_Request_Hint"}}"></textarea>
+							<button class="customWatsonRequest button button button-block ">{{_ "Send_Custom_Request"}}</button>
+						</div>
+					</div>
+					{{#each hint in hints}}
+						<div class="hint watsonhint" data-code="{{hint.code}}" data-watson="{{hint.watson}}">
+							<h4 class="intentexpander">{{hint.intent}} <span class="pull-right watsonconfi">{{hint.confidence}}%</span></h4>
+							<div style="display:none;" class="collapseit">
+								<p><i>{{hint.org}}</i></p>
+								<br/>
+								<p class="hintext" style="padding-left:10px;">{{hint.text}}</p>
+								<textarea class="watsonalternative full-width" placeholder="{{_ "Alternative_Watson"}}"></textarea>
+								<button class="transferWatsonbutton button  button button-block ">{{_ "Use_Watson"}}</button>
+							</div>
+						</div>
+					{{/each}}
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+
+
+
+</template>

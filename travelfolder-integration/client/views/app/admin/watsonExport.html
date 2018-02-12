@@ -1,0 +1,132 @@
+<template name="watsonExport">
+	<section class="page-container page-list travelfoldercontent">
+		<div class="content">
+			<div class="filtercontent p-l-10 p-r-10">
+				<h4>Watson Vorschläge und Antworten</h4>
+
+				<form action="javascript:void(0);" id="searchFormWatson">
+					<input type="date" class="inputcontrol" id="datesearchWatson"  placeholder="Von">
+					<input type="date" class="inputcontrol" id="datesearchWatson2"  placeholder="Bis">
+					<input type="number" class="inputcontrol" id="chatidWatson"  placeholder="ChatID">
+					<button>
+					Suchen
+					</button>
+					<br/>
+					<a href="javascript:void(0);" id="buttonClearFilter">
+						Filter l&ouml;schen
+					</a>
+				</form>
+				<p class="p-t-10 p-b-10">
+				In dieser Ergebnisliste finden Sie eine Vorschau der ersten 100 Ergebnisse.
+				</p>
+				<a id="buttonWatsonDownload" href="javascript:void(0);">
+				<b>Vollständige Liste nun Downloaden (CSV)</b>
+				</a>
+			<br />
+			<br />
+			<br />
+				<a id="buttonClearCache" href="javascript:void(0);">
+				<b>Watson Cache leeren</b>
+				</a>
+			</div>
+			<table class="padded-table full-width">
+			<tr>
+				<th>
+				ChatID
+				</th>
+				<th>
+				Chat eingegangen
+				</th>
+				
+				<th>
+				Antwortzeit
+				</th>
+				
+				<th>
+				Reaktionszeit
+				</th>
+				<th>
+				Chat geschlossen
+				</th>
+				<th>
+				Bearbeitszeit
+				</th>
+
+				<th>
+				Intent
+				</th>
+				<th>
+				Anfrage
+				</th>
+
+				<th>
+				Watson-Antwort
+				</th>
+
+				<th>
+				Alternativantwort
+				</th>
+
+				<th>
+				Übereinstimmungswahrscheinlichkeit
+				</th>
+
+			</tr>
+			{{#with chats}}
+				{{#each chat in chats}}
+					<tr class='liveChatOpenRow'>
+						<td width="10%">
+						{{chat.code}}
+						</td>
+						<td width="10%">
+						{{formatDate chat.startAt "DD.MM.YYYY HH:mm"}}
+						</td>
+						
+						<td width="10%">
+						{{formatDate chat.respondedAt "DD.MM.YYYY HH:mm"}}
+						</td>
+						
+						<td width="10%">
+						{{#if chat.respondedAt}}
+							{{diffDate chat.startAt chat.respondedAt}}
+						{{else}}
+							{{diffDate chat.startAt chat.ts}}
+						{{/if}}
+						</td>
+						
+						<td width="10%">
+						{{formatDate chat.closedAt "DD.MM.YYYY HH:mm"}}
+						</td>
+						<td width="10%">
+							{{diffDate chat.startAt chat.closedAt}}
+						
+						</td>
+						
+						
+						
+						<td width="10%">
+						{{chat.intent}}
+						</td>
+
+						<td width="20%">
+						{{chat.input}}
+						</td>
+
+						<td width="20%">
+						{{chat.output}}
+						</td>
+
+						<td width="20%">
+						{{chat.alternative}}
+						</td>
+
+						<td width="10%">
+						{{formatPercent chat.confidence}}
+						</td>
+					</tr>
+				{{/each}}
+			{{/with}}
+			</table>
+		</div>
+	</section>
+</template>

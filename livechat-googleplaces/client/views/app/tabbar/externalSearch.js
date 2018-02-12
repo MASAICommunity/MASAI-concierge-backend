@@ -1,4 +1,4 @@
-const API_URL = "https://qjchuhm517.execute-api.eu-central-1.amazonaws.com/latest";
+var API_URL = "https://qjchuhm517.execute-api.eu-central-1.amazonaws.com/latest";
 
 for (var tpl in Template) {
 	if (Template.hasOwnProperty(tpl) && tpl.startsWith('dynamic_redlink_')) {
@@ -31,6 +31,12 @@ for (var tpl in Template) {
 Meteor.startup(function(){
 	if(Meteor.isClient){
 	$(document).ready(function() {
+		Meteor.call('masai:retrieveAPI',JSON.stringify([]),
+		function(err, result) {
+			console.log(result);
+			API_URL = result;
+		}) ;
+		
 		var observer = new MutationObserver( function(mutations, observer) {
 
  $("li.message >div:contains('" + API_URL + "')").html(function(index,html){                                         return html.replace(/{(.*)}/, '<p><i>asked for permission</i></p>');                                 })      ;
@@ -113,8 +119,9 @@ Template.google_places_search.events({
 	const serviceName= terms.join("_");
 
 	Meteor.call('masai:retrieveGoogleMapResults',JSON.stringify([{'servicename': serviceName, 'searchterms': terms}]),function(err, result) {
+		console.log(result);
 		template.places_results.set(result);}) ;
-
+ 
 	var containerTemplate= document.getElementById('places_container');
 	template.show_places.set(true);
 

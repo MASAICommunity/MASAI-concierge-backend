@@ -24,26 +24,39 @@ Package.onUse(function (api) {
 	api.use('less@2.5.1');
 	api.use('rocketchat:lib');
 	api.use('mongo');
+	api.use('kadira:flow-router', 'client');
 
 	api.addAssets('assets/stylesheets/redlink.less', 'server');
 
 	api.addFiles('server/config.js', 'server');
+	api.addFiles('server/webapp.js', 'server');
 	api.addFiles('lib/core.js');
 	//addDirectory(api, 'server/methods', 'server');
 	addDirectory(api, 'server/lib', 'server');
 	addDirectory(api, 'server/hooks', 'server');
+	addDirectory(api,'server/models', 'server');
 	addDirectory(api,'server/methods', 'server');
 
+	api.addFiles('handler.js','client');
+	api.addFiles('client/route.js', 'client');
 	api.addFiles('client/travelfolder_ui.js', 'client');
+	addDirectory(api,'client/views/app/admin', 'client');
 	addDirectory(api,'client/views/app/tabbar', 'client');
+	addDirectory(api,'client/views/app/window', 'client');
 
 	//i18n
 	var _ = Npm.require('underscore');
 	var fs = Npm.require('fs');
-	var tapi18nFiles = _.compact(_.map(fs.readdirSync('packages/livechat-googleplaces/i18n'), function(filename) {
+	var tapi18nFiles = _.compact(_.map(fs.readdirSync('packages/travelfolder-integration/i18n'), function(filename) {
 		return 'i18n/' + filename;
 	}));
 	api.addFiles(tapi18nFiles);
 
 	api.use('tap:i18n');
+});
+Npm.depends({
+  'auth0-js': '8.10.1',
+  'jsonwebtoken': '7.4.3',
+  'jwt-decode': '2.2.0',
+  'dynamodb-marshaler': '2.0.0',
 });

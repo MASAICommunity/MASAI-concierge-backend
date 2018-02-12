@@ -1,6 +1,12 @@
 Meteor.methods({
+	'masai:retrieveAPI2'() {
+		return RocketChat.settings.get('Reisebuddy_GRANT_URL');
+	},
+	'masai:retrieveAPI'() {
+		return RocketChat.settings.get('Reisebuddy_AWS_URL');
+	},
 	'masai:retrieveGoogleMapResults'(searchTerm) {
-		const API_KEY = ''; //please fill in google API Key for google places
+		const API_KEY = RocketChat.settings.get('Reisebuddy_Google_API');//'AIzaSyAZmcBtR0ktc8v7gaMjkZxPkz_Wut8RprQ'; //please fill in google API Key for google places
 		console.log('retrieveGMR: ' + searchTerm);
 		const myTerms = JSON.parse(searchTerm);
 
@@ -75,9 +81,14 @@ Meteor.methods({
 
 		google_maps_results.update({_id: googleMap._id}, googleMap);
 
-		return googleMap.photos.map(function (data, index) {
+		var mmap = googleMap.photos.map(function (data, index) {
 			return {'references': data, 'google_result': googleMap.originalresults.results[index]}
 		});
+		mmap["api_url"] = RocketChat.settings.get('Reisebuddy_AWS_URL');
+		console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+		console.log(mmap);
+		console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+		return mmap;
 
 		//	return { 'servicename' : googleMap.servicename, 'searchterms' : googleMap.searchterms, 'photos': googleMap.photos, 'originalresults': googleMap.originalresults};//results.data};
 

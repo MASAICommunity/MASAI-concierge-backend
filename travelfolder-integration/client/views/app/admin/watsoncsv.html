@@ -1,0 +1,14 @@
+<template name="watsoncsv">
+			{{#with chats}}
+				{{#each chat in chats}}
+					asfdsffds
+						{{chat.code}};
+						{{formatDate chat.ts "DD.MM.YYYY HH:mm"}};
+						{{chat.userid}};
+						{{chat.input}};
+						{{chat.output}};
+						{{chat.alternative}};
+						{{formatPercent chat.confidence}}\n
+				{{/each}}
+			{{/with}}
+</template>

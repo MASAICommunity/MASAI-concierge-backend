@@ -1,0 +1,98 @@
+<template name="livechatHistory">
+	<section class="page-container page-list travelfoldercontent">
+		<header class="fixed-title border-component-color">
+			
+			<h2 class="p-l-10 p-r-10 p-t-10">
+				<span class="room-title">Chat History: 
+				{{#with user}}
+					{{id}} {{name}}
+				{{/with}}
+				</span>
+			</h2>
+		</header>
+		<div class="content">
+			<div class="filtercontent p-l-10 p-r-10">
+				<form action="javascript:void(0);" id="searchForm">
+					<input type="text" class="inputcontrol" id="textsearch" placeholder="Text...">
+					<input type="date" class="inputcontrol" id="datesearch"  placeholder="Datum">
+					<input type="number" class="inputcontrol" id="chatid"  placeholder="ChatID">
+					<select class="inputcontrol" id="lccategory" placeholder="Kategorie">
+					
+					</select>
+					<button>
+					Suchen
+					</button>
+				</form>
+			</div>
+			<table class="padded-table full-width">
+			<tr>
+				<th>
+				ChatID
+				</th>
+				<th>
+				Start Datum
+				</th>
+				
+				<th>
+				Start Uhrzeit
+				</th>
+				
+				<th>
+				End Datum
+				</th>
+				
+				<th>
+				End Uhrzeit
+				</th>
+				
+				<th>
+				Kommentar
+				</th>
+				<th> </th>
+			</tr>
+			{{#with chats}}
+				{{#each chat in chats}}
+					<tr class='liveChatOpenRow'>
+						<td data-id='{{chat._id}}'>
+						{{chat.code}}
+						</td>
+						<td>
+						{{formatDate chat.ts "DD.MM.YYYY"}}
+						</td>
+						
+						<td>
+						{{formatDate chat.ts "HH:ss"}}
+						</td>
+						
+						<td>
+						{{formatDate chat._updatedAt "DD.MM.YYYY"}}
+						</td>
+						
+						<td>
+						{{formatDate chat._updatedAt "HH:ss"}}
+						</td>
+						
+						<td>
+						{{#if chat.mcomment}}
+							{{chat.mcomment}}
+						{{else}}
+							{{chat.closecomment}}
+						{{/if}}
+						
+						</td>
+						
+						
+						<td>
+							<a class='liveChatOpenBtn' data-code='{{chat.code}}' data-id='{{chat._id}}' href='javascript:void(0);'>
+								Anzeigen
+							</a>
+						</td>
+					</tr>
+				{{/each}}
+			{{/with}}
+			</table>
+			
+			
+		</div>
+	</section>
+</template>

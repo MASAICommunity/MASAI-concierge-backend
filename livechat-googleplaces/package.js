@@ -31,7 +31,7 @@ Package.onUse(function (api) {
 	api.addFiles('lib/core.js');
 	addDirectory(api, 'server/methods', 'server');
 	addDirectory(api, 'server/lib', 'server');
-	addDirectory(api, 'server/hooks', 'server');
+	//addDirectory(api, 'server/hooks', 'server');
 
 	api.addFiles('client/googleplaces_ui.js', 'client');
 	api.addAssets('assets/icons/google.png', 'server');

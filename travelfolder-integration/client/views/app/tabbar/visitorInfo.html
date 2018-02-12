@@ -4,7 +4,7 @@
 			{{> visitorEdit (editDetails)}}
 		{{/if}}
 		{{#if forwarding}}
-			{{> visitorForward (forwardDetails)}}
+			{{> visitorForwardExtended (forwardDetails)}}
 		{{/if}}
 		<div class="user-view {{showDetail}}">
 			<div class="about clearfix">
@@ -54,8 +54,15 @@
 					{{#if guestPool}}
 						<button class="button button-block return-inquiry"><span><i class="icon-ccw"></i> {{_ "Return"}}</span></button>
 					{{/if}}
+					{{#if showTravelfolder}}
 					<button class="button button-block ask-permission"><i class="icon-key"></i>Ask user for permissions</button>
 					<button  id="travelfolder" class="button button-block travelfolder-info"><i class="icon-folder-open-empty"></i>Go to Travelfolder</button>
+					<button  id="travelfolder2" class="button button-block travelfolder-order"><i class="icon-folder-open-empty"></i>Bestellung aufnehmen</button>
+					{{/if}}
+					<button  id="merge" class="button button-block travelfolder-merge"><i class="icon-folder-open-empty"></i>Chats zusammenführen</button>
+					<button  id="chhistory" class="button button-block travelfolder-history"><i class="icon-folder-open-empty"></i>Chat History</button>
+					<button  id="chrestart" class="button button-block travelfolder-restart"><i class="icon-folder-open-empty"></i>Wieder vorlegen</button>
+
 				</nav>
 			{{/if}}
 
@@ -72,15 +79,19 @@
 					</div>
 				</div>
 			{{/if}}
-			<h4>Notes</h4>
-             <ul>
+			<h4 class="p-l-15 p-r-15">Notes</h4>
+             <ul class="p-l-15 p-r-15">
 				 {{#each note in notes}}
-					 <li>{{note.note}}</li>
+					 <li class="notesplit">
+					 {{#if note.ts}}
+					 <b>{{note.username}} ({{formatDate note.ts 'DD.MM.YYYY HH:mm'}}):</b>
+					 {{/if}}
+					 {{note.note}}</li>
 				 {{/each}}
 			</ul>
 			<form class="note-form">
-				<textarea ></textarea>
-				<button>Add Note</button>
+				<textarea></textarea>
+				<button class="button m-t-10">Add Note</button>
 			</form>
 
 		</div>
