@@ -32,6 +32,9 @@
 			<table class="padded-table full-width">
 			<tr>
 				<th>
+				Ausgangsnummer
+				</th>
+				<th>
 				ChatID
 				</th>
 				<th>
@@ -76,6 +79,9 @@
 				{{#each chat in chats}}
 					<tr class='liveChatOpenRow'>
 						<td width="10%">
+						{{chat.origin}}
+						</td>
+						<td width="10%">
 						{{chat.code}}
 						</td>
 						<td width="10%">
@@ -108,11 +114,11 @@
 						{{chat.intent}}
 						</td>
 
-						<td width="20%">
+						<td width="15%">
 						{{chat.input}}
 						</td>
 
-						<td width="20%">
+						<td width="15%">
 						{{chat.output}}
 						</td>
 

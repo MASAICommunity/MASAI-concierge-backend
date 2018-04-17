@@ -1,3 +1,15 @@
+phoneRoutes = FlowRouter.group({
+	prefix: '/phone',
+	name: 'phone'
+});
+
+AccountBox.addRoute({
+	name: 'phone-asso',
+	path: '/asso',
+	i18nPageTitle: 'Phone Association',
+	pageTemplate: 'phone'
+}, phoneRoutes);
+
 watsonRoutes = FlowRouter.group({
 	prefix: '/watson',
 	name: 'watson'

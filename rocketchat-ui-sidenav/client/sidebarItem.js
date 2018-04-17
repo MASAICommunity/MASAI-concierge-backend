@@ -5,6 +5,10 @@ Template.sidebarItem.helpers({
 		args.pop();
 		return args.some(arg => arg);
 	},
+	todebug () {
+		
+		return JSON.stringify(this);
+	},
 	formatDate(datetime, format) {
 	 	if(datetime) {
 			// can use other formats like 'lll' too

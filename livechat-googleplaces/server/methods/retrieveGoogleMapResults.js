@@ -2,6 +2,9 @@ Meteor.methods({
 	'masai:retrieveAPI2'() {
 		return RocketChat.settings.get('Reisebuddy_GRANT_URL');
 	},
+	'masai:retrieveAPI3'() {
+		return RocketChat.settings.get('Reisebuddy_TF_URL');
+	},
 	'masai:retrieveAPI'() {
 		return RocketChat.settings.get('Reisebuddy_AWS_URL');
 	},

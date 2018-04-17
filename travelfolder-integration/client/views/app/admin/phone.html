@@ -1,0 +1,64 @@
+<template name="phone">
+	<section class="page-container page-list travelfoldercontent">
+		<div class="content">
+			<div class="filtercontent p-l-10 p-r-10">
+				<h4>Telefonnummern zuordnen</h4>
+
+				<form action="javascript:void(0);" id="createFormPhone">
+					<input type="text" class="inputcontrol" id="phoneName"  placeholder="Name (Hiernach erfolgt Gruppierung)">
+					<input type="text" class="inputcontrol" id="phoneNum"  placeholder="Telefonnummer">
+					<input type="text" class="inputcontrol" id="phoneDept"  placeholder="Abteilung (mit , getrennt)">
+					<input type="text" class="inputcontrol" id="phoneGreetings"  placeholder="Grußmeldung">
+					<button>
+					Anlegen
+					</button>
+					
+				</form>
+			
+			</div>
+			<table class="padded-table full-width">
+			<tr>
+				<th>
+				Name
+				</th>
+				<th>
+				Telefonnummer
+				</th>
+				
+				<th>
+				Abteilungen
+				</th>
+				<th>
+				Greetings
+				</th>
+				<th>
+				</th>
+			</tr>
+			{{#with chats}}
+				{{#each chat in chats}}
+					<tr class='liveChatOpenRow'>
+						<td width="15%">
+						{{chat.name}}
+						</td>
+						<td width="15%">
+						{{chat.num}}
+						</td>
+						
+						<td width="25%">
+						{{chat.departments}}
+						</td>
+						
+						<td width="25%">
+						{{chat.greetings}}
+						</td>
+						
+						<td width="20%">
+						<a href="javascript:void(0);" data-uid="{{chat._id}}" class="deleteAsso">L&ouml;schen</a>
+						</td>
+					</tr>
+				{{/each}}
+			{{/with}}
+			</table>
+		</div>
+	</section>
+</template>

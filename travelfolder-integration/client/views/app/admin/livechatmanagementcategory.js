@@ -36,7 +36,7 @@ Template.livechatmanagementcategory.helpers({
 Template.livechatmanagementcategory.events({
 	'submit #newCategory'(event) {
 		Meteor.call('masai:createLCC', $("#categoryName").val(), function(error,result) {
-			Meteor.call('masai:findAllLCC', function(error,result) {
+			Meteor.call('masai:findAllLCC2', function(error,result) {
 				window.livechatmanagementcategorySelf.categories.set(result);
 			});
 		});
@@ -45,7 +45,17 @@ Template.livechatmanagementcategory.events({
 	'click .categorydeleter'(event) {
 		uid = $(event.target).data("uid");
 		Meteor.call('masai:removeLCC', uid, function(error,result) {
-			Meteor.call('masai:findAllLCC', function(error,result) {
+			Meteor.call('masai:findAllLCC2', function(error,result) {
+				window.livechatmanagementcategorySelf.categories.set(result);
+			});
+		});
+		event.preventDefault();
+	},
+	'click .categorydisable'(event) {
+		uid = $(event.target).data("uid");
+		state = $(event.target).data("state");
+		Meteor.call('masai:enablerLCC', uid,state==1?0:1, function(error,result) {
+			Meteor.call('masai:findAllLCC2', function(error,result) {
 				window.livechatmanagementcategorySelf.categories.set(result);
 			});
 		});
@@ -79,7 +89,7 @@ Template.livechatmanagementcategory.onCreated(function() {
 		window.livechatmanagementcategorySelf = this;
 
 		this.autorun(() => {
-			Meteor.call('masai:findAllLCC', function(error,result) {
+			Meteor.call('masai:findAllLCC2', function(error,result) {
 				window.livechatmanagementcategorySelf.categories.set(result);
 			});
 		});

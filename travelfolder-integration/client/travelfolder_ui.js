@@ -2,6 +2,14 @@ import moment from 'moment';
 /**
  * Created by Wolfgang on 22.02.2017.
  */
+  AccountBox.addItem({
+	name: 'Phone',
+	icon: 'phone',
+	href: 'phone-asso',
+	condition: () => {
+		return RocketChat.settings.get('Livechat_enabled') && RocketChat.authz.hasAllPermission('view-privileged-setting');
+	}
+});
  AccountBox.addItem({
 	name: 'Watson',
 	icon: 'hubot',
@@ -76,6 +84,21 @@ RocketChat.tf.validateIncoming = function() {
 				$(item).html(s);
 			} /* then */
 		}
+		
+	});
+	$(".rooms-list__list.inquiries .groupset").each(function(idx, item) {
+		if($(item).find("li").length<=0) {
+			$(item).remove();
+		}
+	});
+	$(".rooms-list__list.inquiries > li a").each(function(idx, item) {
+		var org = $(item).attr("data-origin");
+		if (org!=null) {
+			if ($(".rooms-list__list.inquiries #"+org).length<=0) {
+				$(".rooms-list__list.inquiries").prepend("<div id='"+org+"' class='groupset'><h4>"+org+"</h4><div class='groupsetcontent'></div></div>");
+			}
+			$($(item).parents(".sidebar-item")).detach().appendTo( $(".rooms-list__list.inquiries #"+org+" .groupsetcontent"));
+		} /* then */
 	});
 };
 RocketChat.tf.syncDelayed = function () {
@@ -226,7 +249,7 @@ Meteor.startup(function(){
 				confirmButtonColor: '#3085d6',
 				cancelButtonColor: '#d33',
 				confirmButtonText: t('Take_it')
-			}, (isConfirm) => {
+			}, (isConfirm) => { 
 				if (isConfirm) {
 					Meteor.call('masai:unmark', rid, function(error, result) {
 						inqId = result._id;
@@ -243,23 +266,33 @@ Meteor.startup(function(){
 		});
 		$("body").on('click', '[data-id="send sms"]', function (e) {
 			e.preventDefault();
-			swal({
-				title: t('SMS_Send'),
-			html : true,
-				text : '<p style="text-align:left;font-size:13px;">'+ t("Send_SMS")+'<br/><fieldset style="text-align:left;font-size:9px;"><input type="text" id="targetnumber" style="display:block;"  placeholder="'+t("targetnumber")+'"> '+
-				'<input type="text" id="targettext" style="display:block;"  placeholder="'+t("targettext")+'"></fieldset></p>',
-				showCancelButton: true,
-				confirmButtonColor: '#3085d6',
-				cancelButtonColor: '#d33',
-				confirmButtonText: t('Send')
-			}, (isConfirm) => {
-				if (isConfirm) {					
-					tel = $("#targetnumber").val();
-					txt = $("#targettext").val();
-					Meteor.call('masai:sendSMS',tel, txt, function(err, result) {
-						
-					});
-				}
+			Meteor.call('masai:getPhoneAssos', function(err, rr) {
+				optionx = "<p><select style='width:100%;' id='phoneassoid'>";
+				$(rr).each(function(idx, item) {
+					optionx+=" <option value='"+item._id+"'>"+item.name+" ("+item.num+")</option>";
+				});
+				optionx += "</select></p>";
+				swal({
+					title: t('SMS_Send'),
+				html : true,
+					text : '<p style="text-align:left;font-size:13px;">'+ t("Send_SMS")+'<br/><fieldset style="text-align:left;font-size:9px;"><input type="text" id="targetnumber" style="display:block;"  placeholder="'+t("targetnumber")+'"> '+
+					optionx+
+					'<input type="text" id="targettext" style="display:block;"  placeholder="'+t("targettext")+'"></fieldset></p>',
+					showCancelButton: true,
+					confirmButtonColor: '#3085d6',
+					cancelButtonColor: '#d33',
+					confirmButtonText: t('Send')
+				}, (isConfirm) => {
+					if (isConfirm) {					
+						tel = $("#targetnumber").val();
+						txt = $("#targettext").val();
+						phoneassoid = $("#phoneassoid").val();
+						Meteor.call('masai:sendSMS',tel, txt,phoneassoid, function(err, result) {
+							
+						});
+					}
+				});
+			
 			});
 		});
 		setTimeout(function() {

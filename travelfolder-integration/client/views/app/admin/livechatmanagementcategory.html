@@ -19,7 +19,9 @@
 				<th>
 				Kategorie
 				</th>
-				
+				<th>
+				Status
+				</th>
 				<th>
 				
 				</th>
@@ -32,10 +34,20 @@
 						{{category._id}}
 						</td>
 						
-						<td width="70%">
+						<td width="50%">
 						{{category.name}}
 						</td>
 
+						<td width="20%">
+							<a data-uid="{{category._id}}" data-state="{{category.disabled}}" href="javascript:void(0);" class="categorydisable">
+								{{#if category.disabled}}
+									Inaktiv
+								{{else}}
+									Aktiv
+								{{/if}}
+							</a>
+						</td>
+						
 						<td width="20%">
 						<a data-uid="{{category._id}}" href="javascript:void(0);" class="categorydeleter">
 						Entfernen
