@@ -1,3 +1,16 @@
+
+import { RocketChat } from 'meteor/rocketchat:lib';
+RocketChat.models.Rooms.removeUsernameById = function(_id, username) {
+		const query = {_id};
+
+		const update = {
+			$pull: {
+				usernames: username
+			}
+		};
+
+		return this.update(query, update);
+	};
 Meteor.methods({
 	'masai:returnAsInq'(rid,comment) {
 		if (!Meteor.userId() || !RocketChat.authz.hasPermission(Meteor.userId(), 'view-l-room')) {

@@ -7,36 +7,54 @@ Package.describe({
 });
 
 function addDirectory(api, pathInPackage, environment) {
-	const PACKAGE_PATH = 'packages/travelfolder-integration/';
-	const _ = Npm.require('underscore');
+const PACKAGE_PATH = 'packages/travelfolder-integration/'; 
 	const fs = Npm.require('fs');
-	const files = _.compact(_.map(fs.readdirSync(PACKAGE_PATH + pathInPackage), function (filename) {
-		return pathInPackage + '/' + filename
-	}));
-	api.addFiles(files, environment);
-}
+	
+	fs.readdirSync(PACKAGE_PATH + pathInPackage).forEach(function(file){
+		console.log(pathInPackage+"/"+file);
+        api.addFiles(pathInPackage+"/"+file, environment);
+    });
+} 
 
 Package.onUse(function (api) {
 
-	api.versionsFrom('1.2.1');
-	api.use(['ecmascript', 'underscore']);
-	api.use('templating', 'client');
-	api.use('less@2.5.1');
-	api.use('rocketchat:lib');
-	api.use('mongo');
-	api.use('kadira:flow-router', 'client');
+	//api.versionsFrom('1.2.1');
+	api.use([
+		'ecmascript',
+		'webapp',
+		'autoupdate',
+		'rocketchat:utils',
+		'rocketchat:lib',
+		'rocketchat:authorization',
+		'rocketchat:logger',
+		'rocketchat:api',
+		'rocketchat:theme',
+		'rocketchat:streamer',
+		'konecty:user-presence',
+		'rocketchat:ui',
+		'kadira:flow-router',
+		'kadira:blaze-layout',
+		'templating',
+		'http',
+		'check',
+		'mongo',
+		'ddp-rate-limiter',
+		'rocketchat:sms',
+		'tracker',
+		'less',
+	]);
 
-	api.addAssets('assets/stylesheets/redlink.less', 'server');
+	api.addFiles('assets/stylesheets/redlink.less', 'client');
 
 	api.addFiles('server/config.js', 'server');
 	api.addFiles('server/webapp.js', 'server');
+	api.addFiles('server/restlivechat.js', 'server');
 	api.addFiles('lib/core.js');
-	//addDirectory(api, 'server/methods', 'server');
+	addDirectory(api, 'server/methods', 'server');
 	addDirectory(api, 'server/lib', 'server');
 	addDirectory(api, 'server/hooks', 'server');
 	addDirectory(api,'server/models', 'server');
-	addDirectory(api,'server/methods', 'server');
-
+	
 	api.addFiles('handler.js','client');
 	api.addFiles('client/route.js', 'client');
 	api.addFiles('client/travelfolder_ui.js', 'client');
@@ -44,15 +62,6 @@ Package.onUse(function (api) {
 	addDirectory(api,'client/views/app/tabbar', 'client');
 	addDirectory(api,'client/views/app/window', 'client');
 
-	//i18n
-	var _ = Npm.require('underscore');
-	var fs = Npm.require('fs');
-	var tapi18nFiles = _.compact(_.map(fs.readdirSync('packages/travelfolder-integration/i18n'), function(filename) {
-		return 'i18n/' + filename;
-	}));
-	api.addFiles(tapi18nFiles);
-
-	api.use('tap:i18n');
 });
 Npm.depends({
   'auth0-js': '8.10.1',

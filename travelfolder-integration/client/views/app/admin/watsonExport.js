@@ -1,5 +1,9 @@
 import moment from 'moment';
+import swal from 'sweetalert';
 
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
 Template.watsonExport.helpers({
 	isReady() {
 		return Template.instance().ready.get();
@@ -21,6 +25,18 @@ Template.watsonExport.helpers({
 			return "";
 		}
 
+	},
+	
+	duration(dur) {
+		if (dur===0) {
+			return "0:00:00"; 
+		}
+		if (dur) {
+			var d = moment.duration(dur);
+			var s = Math.floor(d.hours())+":"+Math.floor(d.minutes()) + ":"+Math.floor(d.seconds());
+			return s;
+		}
+		return "";
 	},
 	diffDate(startAt, endDate) {
 	 	if(startAt) {
@@ -55,7 +71,10 @@ Template.watsonExport.events({
 		event.preventDefault();
 		Meteor.call('masai:botResults',
 		$("#chatidWatson").val(), $("#datesearchWatson").val()==null || $("#datesearchWatson").val()==""?null:new Date($("#datesearchWatson").val()),
-		$("#datesearchWatson2").val()==null || $("#datesearchWatson2").val()==""?null:new Date($("#datesearchWatson2").val()), function(error, result){
+		$("#datesearchWatson2").val()==null || $("#datesearchWatson2").val()==""?null:new Date($("#datesearchWatson2").val()),
+		$("#dienst").val()==null || $("#dienst").val()==""?null:$("#dienst").val(),
+		$("#chatcategory").val()==null || $("#chatcategory").val()==""?null:$("#chatcategory").val(),
+		 function(error, result){
 			console.log(result);
 			window.watsonExportSelf.chats.set(result);
 			$("#initial-page-loading").remove();
@@ -65,12 +84,15 @@ Template.watsonExport.events({
 		order = $("#chatidWatson").val();
 		date = $("#datesearchWatson").val();
 		date2 = $("#datesearchWatson2").val();
-			window.open('watsoncsvdownload/'+(order)+"/"+date+"/"+date2,"_blank");
+		dienst = $("#dienst").val();
+		chatcategory = $("#chatcategory").val();
+			window.open('watsoncsvdownload?order='+(order)+"&date1="+date+"&date2="+date2+"&service="+dienst+"&category="+chatcategory,"_blank");
 	},
 	'click #buttonClearFilter' (event) {
 		$("#chatidWatson").val(null);
 		$("#datesearchWatson").val(null);
 		$("#datesearchWatson2").val(null);
+		$("#dienst").val(null);
 	},
 	'click #buttonClearCache' (event) {
 		Meteor.call('masai:clearWatsonCache', function(error, result){
@@ -110,8 +132,22 @@ Template.watsonExport.onCreated(function() {
 	var currentData = Template.currentData();
 
 	if (currentData) {
-		window.watsonExportSelf = this;
-
+		window.watsonExportSelf = this; 
+		Meteor.call('masai:getHapaAssos', function(error, result){
+			optionsV = "<option value=''> - </option>";
+			$(result).each(function(idx, item) {
+				optionsV += "<option value='"+item.name+"'>"+item.name+"</option>";
+			});
+			$("#dienst").html(optionsV);
+		});
+		Meteor.call('masai:findAllLCC2', function(error, result){ 
+			optionsV = "<option value=''> - </option>";
+			optionsV += "<option value='"+RocketChat.settings.get('Reisebuddy_WATSON_AUTOPROCESSING_CATEGORY')+"'> "+RocketChat.settings.get('Reisebuddy_WATSON_AUTOPROCESSING_CATEGORY')+" </option>";
+			$(result).each(function(idx, item) {
+				optionsV += "<option value='"+item.name+"'>"+item.name+"</option>";
+			});
+			$("#chatcategory").html(optionsV);
+		});
 		this.autorun(() => {
 			Meteor.call('masai:botResults',null, null, function(error, result){
 				console.log(result);

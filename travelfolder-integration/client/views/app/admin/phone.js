@@ -1,5 +1,9 @@
 import moment from 'moment';
+import swal from 'sweetalert';
 
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
 Template.phone.helpers({
 	isReady() {
 		return Template.instance().ready.get();
@@ -27,8 +31,8 @@ Template.phone.events({
 		event.preventDefault();
 		Meteor.call('masai:createPhoneAsso',
 		$("#phoneName").val(), $("#phoneNum").val(),
-		$("#phoneDept").val(),$("#phoneGreetings").val(), function(error, result){
-			console.log(result);
+		$("#phoneDept").val(),$("#phoneGreetings").val(), $("#phoneInterfacet").val(),$("#hpid").val(),function(error, result){
+			
 			window.phoneSelf.chats.set(result);
 			$("#initial-page-loading").remove();
 		});

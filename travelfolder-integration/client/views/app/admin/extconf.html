@@ -1,0 +1,248 @@
+<template name="extconf">
+	<section class="page-container page-list travelfoldercontent flex-tab-main-content">
+		<div class="content">
+			<div class="filtercontent p-l-10 p-r-10">
+				<h4>Handelspartner Setup</h4>
+
+				<form action="javascript:void(0);" id="createFormPartner"> 
+					<input type="text" class="inputcontrol" id="partnerName"  placeholder="Name">
+					<input type="text" class="inputcontrol" id="partnerDomain"  placeholder="Domain">
+					<button>
+					Anlegen
+					</button>
+					
+				</form>
+			</div>
+			<table class="padded-table full-width">
+			{{#with partners}}
+				{{#each partner in partners}}
+					<tr class='liveChatOpenRow'>
+						<td width="100%">
+						<div class="col-xs-12">
+						<div class="row">
+							<div class="col-xs-6 col-sm-2">
+								HaPa-ID: <h2>{{partner._id}} <a href="javascript:void(0);" data-uid="{{partner._id}}" class="copyId"><b>Copy</b></a></h2> 
+							</div>
+							<div class="col-xs-6 col-sm-3">
+								HaPa Name: <input type="text" class="tfinput" name="name_{{partner._id}}" value="{{partner.name}}" placeholder="DB-Reisebuddy">
+							</div>
+							<div class="col-xs-6 col-sm-3">
+								Hapa Webseite: <input type="text" class="tfinput" name="domain_{{partner._id}}" value="{{partner.domain}}" placeholder="www.deutsche-bahn.de">
+							</div>
+							
+							<div class="col-xs-6 col-sm-2"><br/>
+								<button class="button htmlcopy" data-uid="{{partner._id}}">
+								HTML Kopieren
+								</button>
+							</div>
+							<div class="col-xs-12 col-sm-2"><br/>
+								<a href="javascript:void(0;" class="hapaexpand" data-uid="{{partner._id}}">Anzeigen/Ausblenden</a>
+							</div>
+						</div>
+						<div class="clear clear-fix"></div>
+						</div>
+						<div class="hapaSetting" data-uid="{{partner._id}}" style="display:none;">
+						<hr/>
+							<div class="row">
+								<div class="col-xs-12 col-lg-3">
+									<h2>Einstellungen Allgemein</h2>
+									Agentname: <input value="{{partner.agentName}}" class="tfinput" type="text" name="agentName_{{partner._id}}"><br/>
+									Anrede (Du): 
+									{{#if partner.noun}} 
+									<input value="1" checked type="checkbox" name="noun_{{partner._id}}">
+									{{else}}
+									<input value="1" type="checkbox" name="noun_{{partner._id}}">
+									 {{/if}} 
+									<br/>
+									Kunde kann schlie&szlig;en: 
+									{{#if partner.enableClose}} 
+									<input value="1" checked type="checkbox" name="enableClose_{{partner._id}}">
+									{{else}}
+									<input value="1" type="checkbox" name="enableClose_{{partner._id}}">
+									 {{/if}} 
+									<br/>
+									Zeit zum Schließen in Sekunden:  <input value="{{partner.closemin}}" class="tfinput" type="number"  name="closemin_{{partner._id}}"><br/>
+									Overlay anzeigen: 
+									{{#if partner.showNoOverlay}} 
+									<input value="1" checked type="checkbox" name="showNoOverlay_{{partner._id}}">
+									{{else}}
+									<input value="1" type="checkbox" name="showNoOverlay_{{partner._id}}">
+									 {{/if}} 
+									<br/>
+									Agentlogo: <input value="{{partner.agentLogo}}" class="tfinput" type="text" name="agentLogo_{{partner._id}}"><br/>
+									
+									
+									Overlay Überschrift: <input value="{{partner.headertitle}}" class="tfinput" type="text" name="headertitle_{{partner._id}}"><br/>
+										
+									Secondary Benutzer: <input type="text" class="tfinput" name="transferuser_{{partner._id}}" value="{{partner.transferuser}}" placeholder="7a93abc8"> <br/>
+									Transfer Nachricht:
+									<textarea type="checkbox" row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.transfermessage}}"  
+									name="transfermessage_{{partner._id}}"></textarea>
+									Overlay Text (html):
+									<textarea type="checkbox" row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.infomessage}}"  name="infomessage_{{partner._id}}"></textarea>
+									<br/>
+									Zwischennachricht:
+									<textarea row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.intermediate}}"  name="intermediate_{{partner._id}}"></textarea><br/>
+										
+									Grußnachricht:
+									<textarea row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.greet}}"  name="greet_{{partner._id}}"></textarea><br/>
+									Webchat Startnachricht: 
+									<textarea row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.startmessage}}"  name="startmessage_{{partner._id}}"></textarea><br/>
+									Transscript Abfrage: 
+									<input value="{{partner.transcriptMessage}}" class="tfinput" type="text" name="transcriptMessage_{{partner._id}}"><br/>
+									
+									Nachricht, wenn Kunde schlie&szlig;t:
+									<textarea type="checkbox" row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.closeMessageCustomer}}"  
+									name="closeMessageCustomer_{{partner._id}}"></textarea>
+									 
+									Call 2 Action Frage: <input value="{{partner.moreQuestions}}" class="tfinput" type="text" name="moreQuestions_{{partner._id}}"><br/>
+									Call 2 Action Textfarbe: <input value="{{partner.questioncolor}}" class="tfinput" type="text" name="questioncolor_{{partner._id}}"><br/>
+									Call 2 Action Hintergrundfarbe: <input value="{{partner.questionbackground}}" class="tfinput" type="text" name="questionbackground_{{partner._id}}"><br/>
+									Call 2 Action anzeigen:
+									{{#if partner.showCallTwoAction}} 
+									<input value="1" checked type="checkbox" name="showCallTwoAction_{{partner._id}}">
+									{{else}}
+									<input value="1" type="checkbox" name="showCallTwoAction_{{partner._id}}">
+									 {{/if}} <br/>
+									 
+									 Alle Buttons deaktivieren (nur Javascript Start):
+									{{#if partner.showNoButton}} 
+									<input value="1" checked type="checkbox" name="showNoButton_{{partner._id}}">
+									{{else}}
+									<input value="1" type="checkbox" name="showNoButton_{{partner._id}}">
+									 {{/if}} <br/>
+									Kategorien: <br/>
+									<select class="tfinput" name="category_{{partner._id}}" multiple>
+										{{#each category in categories}}
+										 <option value="{{category.name}}" {{iscatchecked category.name partner}} class="" type="checkbox" name="categoryx_{{partner._id}}">{{category.name}}</option>
+										{{/each}}
+									</select>
+									<br/>
+									Chat ID senden:
+									{{#if partner.sendChatId}} 
+									<input value="1" checked type="checkbox" name="sendChatId_{{partner._id}}">
+									{{else}}
+									<input value="1" type="checkbox" name="sendChatId_{{partner._id}}">
+									 {{/if}} 
+									<br/>
+								</div>
+								<div class="col-xs-12 col-lg-3">
+									<h2>Watson Einstellungen</h2>
+									Watson-Tab anzeigen:
+									{{#if partner.showwatson}} 
+									<input type="checkbox"  checked value="{{partner.showwatson}}"  name="showwatson_{{partner._id}}">
+									{{else}}
+									<input type="checkbox" value="{{partner.showwatson}}"  name="showwatson_{{partner._id}}">
+									{{/if}} 
+									<br/>
+									<br/>
+									Watson Channel: <input value="{{partner.watsonchannel}}" class="tfinput" type="text"  name="watsonchannel_{{partner._id}}"><br/>
+									Watson Password: <input value="{{partner.watsonpass}}" class="tfinput" type="text"  name="watsonpass_{{partner._id}}"><br/>
+									Watson User: <input value="{{partner.watsonuser}}" class="tfinput" type="text"  name="watsonuser_{{partner._id}}"><br/>
+									Watson Endpoint: <input value="{{partner.watsonendpoint}}" class="tfinput" type="text"  name="watsonendpoint_{{partner._id}}"><br/>
+									Watson Skill ID: <input value="{{partner.watsonskillid}}" class="tfinput" type="text"  name="watsonskillid_{{partner._id}}"><br/>
+									Automatische Antwort (%): <input value="{{partner.autotrigger}}" class="tfinput" type="number" min="0" max="101" step="1" name="autotrigger_{{partner._id}}"><br/>
+									Maximale Antwortzahl (wenn leer unendlich): <input value="{{partner.maxRep}}" class="tfinput" type="number" step="1" name="maxRep_{{partner._id}}"><br/>
+									<small>Wenn keine Maximalantwort vorhanden, stoppt der Chat, wenn ein Mensch übernimmt</small><br/>
+								</div>
+								<div class="col-xs-12 col-lg-3">
+									<h2>Einstellungen Online</h2>
+									Text Kopfzeile: <input value="{{partner.display}}" class="tfinput" type="text" name="display_{{partner._id}}"><br/>
+									
+									Farbe: <input type="text" value="{{partner.color}}" class="tfinput"  name="color_{{partner._id}}"><br/>
+									
+									Agentenfarbe: <input type="text" value="{{partner.coloragent}}" class="tfinput"  name="coloragent_{{partner._id}}"><br/>
+									Nachrichtenfarbe (Agent): <input type="text" value="{{partner.colormessage}}" class="tfinput"  name="colormessage_{{partner._id}}"><br/>
+									Kundenfarbe: <input type="text" value="{{partner.colorguest}}" class="tfinput"  name="colorguest_{{partner._id}}"><br/>
+									Nachrichtenfarbe (Kunde): <input type="text" value="{{partner.colormessage2}}" class="tfinput"  name="colormessage2_{{partner._id}}"><br/>
+									Registrierung mit Email: 
+									{{#if partner.register}} 
+									<input type="checkbox"  checked value="{{partner.register}}"  name="register_{{partner._id}}">
+									{{else}} 
+									<input type="checkbox" value="{{partner.register}}"  name="register_{{partner._id}}">
+									{{/if}} 
+									<br/>
+									Registrierung mit Name (<small>priorit&auml;t</small>): 
+									{{#if partner.withname}} 
+									<input type="checkbox"  checked value="{{partner.withname}}"  name="withname_{{partner._id}}">
+									{{else}} 
+									<input type="checkbox" value="{{partner.withname}}"  name="withname_{{partner._id}}">
+									{{/if}} 
+									<br/>
+									Textfeld Name (Placeholder): <input type="text" value="{{partner.nicknameplaceholder}}" class="tfinput"  name="nicknameplaceholder_{{partner._id}}"><br/>
+									Begr&uuml;&szlig;ungstext:
+									<textarea row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.welcomeMessage}}"  name="welcomeMessage_{{partner._id}}"></textarea>
+									<br/>
+								</div>
+								<div class="col-xs-12 col-lg-3">
+									<h2>Einstellungen Offline</h2>
+									Registrierung: 
+									{{#if partner.noun}} 
+									<input value="1" checked type="checkbox" name="offlineregister_{{partner._id}}">
+									{{else}}
+									<input value="1" type="checkbox" name="offlineregister_{{partner._id}}">
+									 {{/if}} 
+									 <br/>
+									Offline Kopfzeile: <input value="{{partner.displayoffline}}" class="tfinput" type="text" name="displayoffline_{{partner._id}}"><br/>
+									Offline Farbe: <input type="text" value="{{partner.coloroffline}}" class="tfinput"  name="coloroffline_{{partner._id}}"><br/>
+									
+									Offline-Text, mit Registrierung:
+									<textarea row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.greetings}}"  name="greetings_{{partner._id}}"></textarea>
+									Nachricht erhalten:
+									<textarea row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.messagereceived}}"  name="messagereceived_{{partner._id}}"></textarea>
+									Offline-Text, wenn ohne Registrierung:
+									<textarea row="5" class="tfinput" style="width:100%;min-height: 150px;" value="{{partner.greetings2}}"  name="greetings2_{{partner._id}}"></textarea>
+									<br/>
+								
+								</div>
+							</div>
+							<div class="col-xs-12 col-lg-12">
+								Extra CSS:
+								<textarea row="7" class="tfinput" style="width:100%;min-height: 250px;" name="extracss_{{partner._id}}">{{partner.extracss}}</textarea>
+							</div>
+							
+							<div class="col-xs-12 col-lg-12">
+							<code  name="code_{{partner._id}}" class="tfinput codestyle">
+							 <!-- Start of Rocket.Chat Livechat Script -->
+	&lt;script type="text/javascript">
+	(function(w, d, s, u) {
+		w.RocketChat = function(c) { w.RocketChat._.push(c) }; w.RocketChat._ = []; w.RocketChat.url = u;
+		var h = d.getElementsByTagName(s)[0], j = d.createElement(s); 
+		w.Travelfolder = {};
+		w.Travelfolder.extendtext = '{{stripnewline partner.infomessage}}'; 
+		w.Travelfolder.headertitle = '{{stripnewline partner.headertitle}}'; 
+		if (w.Travelfolder.headertitle == '') {
+		w.Travelfolder.headertitle = null;
+		}
+		w.Travelfolder.extendcolor = '{{partner.color}}'; 
+		if (w.Travelfolder.extendcolor=="") {
+			w.Travelfolder.extendcolor = "#888";
+		}
+		w.Travelfolder.extendname = '{{stripnewline partner.name}}'; 
+		w.Travelfolder.extenddisplay = '{{stripnewline partner.display}}'; 
+		w.Travelfolder.extendactivedisplay = '{{stripnewline partner.displayactive}}'; 
+		j.async = true; j.src = '{{baseurl}}/packages/rocketchat_livechat/assets/rocketchat-livechat.min.js?_=201702160944';
+		h.parentNode.insertBefore(j, h);
+		
+		var h2= d.getElementsByTagName(s)[0], j2 = d.createElement(s);
+		j2.async = true; j2.src = '{{baseurl}}/travelfolder-integration/livechat.js?_=201811040944';
+		h2.parentNode.insertBefore(j2, h2);
+	})(window, document, 'script', '{{baseurl}}/livechat?hp={{partner._id}}');
+	&lt;/script>
+	<!-- End of Rocket.Chat Livechat Script -->
+	</code>
+							</div>
+							<div class="col-xs-12">
+								<a href="javascript:void(0);" data-uid="{{partner._id}}" class="saveAsso button"><b>Speichern</b></a>
+								&nbsp;&nbsp;&nbsp;
+								<a href="javascript:void(0);" data-uid="{{partner._id}}" class="deleteAsso">L&ouml;schen</a>
+							</div>
+						</div>
+						</td>
+					</tr>
+				{{/each}}
+			{{/with}}
+			</table>
+		</div>
+	</section>
+</template>

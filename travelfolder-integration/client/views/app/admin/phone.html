@@ -1,5 +1,5 @@
 <template name="phone">
-	<section class="page-container page-list travelfoldercontent">
+	<section class="page-container page-list travelfoldercontent flex-tab-main-content">
 		<div class="content">
 			<div class="filtercontent p-l-10 p-r-10">
 				<h4>Telefonnummern zuordnen</h4>
@@ -9,6 +9,8 @@
 					<input type="text" class="inputcontrol" id="phoneNum"  placeholder="Telefonnummer">
 					<input type="text" class="inputcontrol" id="phoneDept"  placeholder="Abteilung (mit , getrennt)">
 					<input type="text" class="inputcontrol" id="phoneGreetings"  placeholder="Grußmeldung">
+					<input type="text" class="inputcontrol" id="phoneInterfacet"  placeholder="Schnittstellentyp">
+					<input type="text" class="inputcontrol" id="hpid"  placeholder="Id des Hanndelspartner">
 					<button>
 					Anlegen
 					</button>
@@ -32,6 +34,12 @@
 				Greetings
 				</th>
 				<th>
+				Schnittstellentyp
+				</th>
+				<th>
+				Handelspartner Id
+				</th>
+				<th>
 				</th>
 			</tr>
 			{{#with chats}}
@@ -44,16 +52,22 @@
 						{{chat.num}}
 						</td>
 						
-						<td width="25%">
+						<td width="15%">
 						{{chat.departments}}
 						</td>
 						
 						<td width="25%">
 						{{chat.greetings}}
 						</td>
+						<td width="10%">
+						{{chat.interfacet}}
+						</td>
 						
+						<td width="10%">
+						{{chat.hpid}}
+						</td>
 						<td width="20%">
-						<a href="javascript:void(0);" data-uid="{{chat._id}}" class="deleteAsso">L&ouml;schen</a>
+							<a href="javascript:void(0);" data-uid="{{chat._id}}" class="deleteAsso">L&ouml;schen</a>
 						</td>
 					</tr>
 				{{/each}}

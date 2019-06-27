@@ -2,6 +2,7 @@
 import moment from 'moment';
 
 
+const CATEGORY_MESSAGE = 'MESSAGE';
 RocketChat.callbacks.add('afterSaveMessage', function(message, room) {
 	// skips this callback if the message was edited
 	if (message.editedAt) {
@@ -23,18 +24,20 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room) {
 		var pushObject = {
 			roomId: message.rid,
 			roomName: '',
-			username: '',
+			username: message.u.username,
 			message:  message.msg,
 			payload: {
 				host: Meteor.absoluteUrl(),
 				rid: message.rid,
 				sender: message.u,
 				type: room.t,
-				name: ''
+				name: message.u.username
 			},
 			usersTo: {
 				userId: guest._id
-			}
+			},
+			category:  CATEGORY_MESSAGE 
+			
 		};
 		console.log(pushObject);
 

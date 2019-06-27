@@ -1,18 +1,25 @@
 <template name="watsonExport">
-	<section class="page-container page-list travelfoldercontent">
+	<section class="page-container page-list travelfoldercontent flex-tab-main-content">
 		<div class="content">
 			<div class="filtercontent p-l-10 p-r-10">
 				<h4>Watson Vorschläge und Antworten</h4>
 
 				<form action="javascript:void(0);" id="searchFormWatson">
 					<input type="date" class="inputcontrol" id="datesearchWatson"  placeholder="Von">
-					<input type="date" class="inputcontrol" id="datesearchWatson2"  placeholder="Bis">
-					<input type="number" class="inputcontrol" id="chatidWatson"  placeholder="ChatID">
+					<input type="date" class="inputcontrol" id="datesearchWatson2"  placeholder="Bis"> <br/>
+					<input type="number" class="inputcontrol" id="chatidWatson"  placeholder="ChatID"> <br/>
+					<select class="inputcontrol" id="dienst" style="height:100px;" multiple placeholder="dienst">
+					
+					</select> <br/>
+					<select class="inputcontrol" id="chatcategory"  placeholder="Kategorie">
+					</select> <br/>
 					<button>
 					Suchen
-					</button>
+					</button> 
 					<br/>
-					<a href="javascript:void(0);" id="buttonClearFilter">
+					<br/>
+					<br/>
+					<a style="font-weight: 500;" href="javascript:void(0);" id="buttonClearFilter">
 						Filter l&ouml;schen
 					</a>
 				</form>
@@ -32,10 +39,13 @@
 			<table class="padded-table full-width">
 			<tr>
 				<th>
-				Ausgangsnummer
+				Dienst
 				</th>
 				<th>
 				ChatID
+				</th>
+				<th>
+				Chat angenommen
 				</th>
 				<th>
 				Chat eingegangen
@@ -49,10 +59,10 @@
 				Reaktionszeit
 				</th>
 				<th>
-				Chat geschlossen
+				Bearbeitszeit
 				</th>
 				<th>
-				Bearbeitszeit
+				Chat geschlossen
 				</th>
 
 				<th>
@@ -71,41 +81,49 @@
 				</th>
 
 				<th>
-				Übereinstimmungswahrscheinlichkeit
+				Agent
+				</th>
+				<th>
+				Übereinstimmungs-<br/>wahrscheinlichkeit
+				</th>
+				<th>
+				Kategorie
 				</th>
 
 			</tr>
 			{{#with chats}}
 				{{#each chat in chats}}
 					<tr class='liveChatOpenRow'>
-						<td width="10%">
+						<td width="5%">
 						{{chat.origin}}
 						</td>
-						<td width="10%">
+						<td width="5%">
 						{{chat.code}}
 						</td>
-						<td width="10%">
-						{{formatDate chat.startAt "DD.MM.YYYY HH:mm"}}
+						<td width="7.5%">
+							{{formatDate chat.takenTs "DD.MM.YYYY HH:mm:ss"}}
+						</td>
+						<td width="7.5%">
+							{{formatDate chat.ts "DD.MM.YYYY HH:mm:ss"}}
 						</td>
 						
-						<td width="10%">
-						{{formatDate chat.respondedAt "DD.MM.YYYY HH:mm"}}
+						<td width="7.5%">
+						{{formatDate chat.respondedAt "DD.MM.YYYY HH:mm:ss"}}
 						</td>
 						
-						<td width="10%">
+						<td width="7.5%">
 						{{#if chat.respondedAt}}
-							{{diffDate chat.startAt chat.respondedAt}}
-						{{else}}
-							{{diffDate chat.startAt chat.ts}}
+						{{diffDate chat.ts chat.respondedAt}}
 						{{/if}}
 						</td>
 						
 						<td width="10%">
-						{{formatDate chat.closedAt "DD.MM.YYYY HH:mm"}}
+						{{#if chat.respondedAt}} 
+						{{duration chat.processingtime}}
+						{{/if}}
 						</td>
-						<td width="10%">
-							{{diffDate chat.startAt chat.closedAt}}
-						
+						<td width="7.5%">
+						{{formatDate chat.closedAt "DD.MM.YYYY HH:mm:ss"}}
 						</td>
 						
 						
@@ -114,7 +132,7 @@
 						{{chat.intent}}
 						</td>
 
-						<td width="15%">
+						<td width="10%">
 						{{chat.input}}
 						</td>
 
@@ -122,12 +140,18 @@
 						{{chat.output}}
 						</td>
 
-						<td width="20%">
+						<td width="15%">
 						{{chat.alternative}}
 						</td>
-
-						<td width="10%">
+						
+						<td width="15%">
+						{{chat.userid}}
+						</td>
+						<td width="5%">
 						{{formatPercent chat.confidence}}
+						</td>
+						<td width="10%">
+						{{chat.closereason}}
 						</td>
 					</tr>
 				{{/each}}

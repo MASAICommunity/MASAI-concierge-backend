@@ -1,5 +1,9 @@
 import moment from 'moment';
+import swal from 'sweetalert';
 
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
 Template.watsoncsv.helpers({
 	isReady() {
 		return Template.instance().ready.get();
@@ -22,8 +26,7 @@ Template.watsoncsv.helpers({
 	  
 	}
 });
-Template.watsoncsv.events({
-}); /* events */
+
 Template.watsoncsv.onRendered(function() {
 	return Tracker.afterFlush(function() {
 		return SideNav.openFlex();

@@ -1,5 +1,9 @@
 import moment from 'moment';
+import swal from 'sweetalert';
 
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
 Template.livechatmanagementcategory.helpers({
 	isReady() {
 		return Template.instance().ready.get();

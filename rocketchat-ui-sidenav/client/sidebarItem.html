@@ -20,13 +20,14 @@
 					</div>
 				{{/if}}
 			{{/if}}
+			{{#if ts}} 
+					<small class="sidebar-item-small" data-ts='{{formatDate ts "YYYY-MM-DD HH:mm:ss"}}' > </small> - 
+				{{else}} 
+					<small class="sidebar-item-small" data-ts1='{{formatDate ls "YYYY-MM-DD HH:mm:ss"}}' > </small> - 
+				{{/if}}
 			<div class='sidebar-item__name {{archivedClass}}'>{{name}} </div>
 			
-				{{#if ts}} 
-					<small class="sidebar-item-small" data-ts='{{formatDate ts "YYYY-MM-DD HH:mm:ss"}}' > </small>
-				{{else}} 
-					<small class="sidebar-item-small" data-ts1='{{formatDate ls "YYYY-MM-DD HH:mm:ss"}}' > </small>
-				{{/if}}
+				
 			 
 			{{#if unread}}
 				<span class="badge badge--unread">{{#if userMentions}}@ {{/if}}{{unread}}</span>

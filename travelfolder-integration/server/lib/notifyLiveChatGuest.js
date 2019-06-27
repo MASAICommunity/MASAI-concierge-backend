@@ -1,6 +1,7 @@
 /* globals Push */
 import moment from 'moment';
 
+const CATEGORY_MESSAGE = 'MESSAGE';
 function localize(msg, language) {
 	if(language && language.toLowerCase() == "en") {
 		//filesharing
@@ -64,15 +65,17 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room) {
 
 	var guest = RocketChat.models.Users.findOneById(room.v._id);
 	var locale = 'de'
-	if(guest.locale) {
+	if(guest && guest.locale) {
 		locale = guest.locale;
 	}
 
 	var msg = localize(message.msg, locale);
 
-
+	if (!guest) {
+		return message; 
+	}
 	//dont notify for messages sent by guest
-	if(message.u._id == guest._id) {
+	if(message.u == null || message.u._id == guest._id) {
 		return message;
 	}
 
@@ -81,7 +84,7 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room) {
 		var pushObject = {
 			roomId: message.rid,
 			roomName: 'Neue Nachricht',
-			username: '',
+			username: message.u.username,
 			message:  msg,
 			payload: {
 				host: Meteor.absoluteUrl(),
@@ -89,13 +92,13 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room) {
 				sender: message.u,
 				type: room.t,
 				cmd: 'open_room',
-				name: ''
+				name: message.u.username
 			},
 			usersTo: {
 				userId: guest._id
-			}
+			},
+			category:  CATEGORY_MESSAGE 
 		};
-		console.log("PushMessage", pushObject);
 
 		RocketChat.PushNotification.send(pushObject);
 	}

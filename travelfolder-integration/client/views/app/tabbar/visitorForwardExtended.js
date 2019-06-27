@@ -1,4 +1,13 @@
 import toastr from 'toastr';
+import swal from 'sweetalert';
+
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
+import { modal, ChatRoom } from 'meteor/rocketchat:ui';
+import { LivechatDepartment } from 'meteor/rocketchat:livechat';
+import { AgentUsers } from 'meteor/rocketchat:livechat';
+
 Template.visitorForwardExtended.helpers({
 	visitor() {
 		return Template.instance().visitor.get();

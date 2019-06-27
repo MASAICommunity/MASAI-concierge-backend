@@ -1,4 +1,10 @@
 import moment from 'moment';
+import swal from 'sweetalert';
+
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
+import { modal, ChatRoom } from 'meteor/rocketchat:ui'; 
 
 Template.livechatMerge.helpers({
 	isReady() {
@@ -37,8 +43,8 @@ Template.livechatMerge.events({
 			targetValues2[$(item).data("chat")] = $(item).data("name");
 			optionsV = $(item).data("chat");
 		});
-		swal({
-			title: t('Merge_chat'),
+		modal.open({
+			title: t('Merge_chat'), 
 			html : true,
 			text : t("Merge_chat_desc")+'<br/><fieldset><input type="hidden" id="mergechatid" value="'+optionsV+'"><br/><input type="text" id="mergecomment" style="display:block;"  placeholder="'+t("Merge_chat_comment")+'"></fieldset>',
 			showCancelButton: true,
@@ -46,12 +52,14 @@ Template.livechatMerge.events({
 		}, () => {
 			inputValue = $("#mergechatid").val();
 			if (!inputValue) {
-				swal.showInputError(t('Please_provide_chat_id'));
+				modal.open({ text : t('Please_provide_chat_id') });
 				return false;
 			} /* then */
 
-			if (s.trim(inputValue) === '') {
-				swal.showInputError(t('Please_provide_chat_id'));
+			if ($.trim(inputValue) === '') {
+				modal.open({
+					text : t('Please_provide_chat_id')
+				});
 				return false;
 			} /* then */
 			inputValue2 = $("#mergecomment").val();
@@ -59,7 +67,7 @@ Template.livechatMerge.events({
 				if (error) {
 					return handleError(error);
 				}
-				swal({
+				modal.open({
 					title: t('Chat_merge'),
 					text: t('Chat_merge_successfully'),
 					type: 'success',

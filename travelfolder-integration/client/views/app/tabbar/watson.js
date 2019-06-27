@@ -1,4 +1,9 @@
 import moment from 'moment';
+import swal from 'sweetalert';
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
+import { modal, ChatRoom } from 'meteor/rocketchat:ui';
 
 var message = null;
 var messageListenerRegistered = false;
@@ -10,6 +15,14 @@ Template.watson_travelFolder.helpers({
 	user() {
 		const user = Template.instance().user.get();
 		return user;
+	},
+	
+	trimStopText(lm) {
+		if (lm==null) {
+			return null;
+		}
+		const stopText = RocketChat.settings.get('Reisebuddy_WATSON_CONTINUEPROCESSING');
+		return stopText == null ? lm : lm.split(stopText).join("");
 	},
 
 	room() {
@@ -106,11 +119,11 @@ Template.watson_travelFolder.helpers({
 			}
 		};
 	},
-
+ 
 	roomOpen() {
 		const room = ChatRoom.findOne({ _id: this.rid });
 
-		return room.open
+		return room && room.open;
 	},
 
 	showTravelfolder() {
@@ -126,25 +139,8 @@ Template.watson_travelFolder.helpers({
 	}
 
 });
-
-Template.watson_travelFolder.events({
-	'click .intentexpander' (event, instance) {
-		btn = $(event.target);
-		watsonhint = $(btn).parents(".watsonhint");
-		$(watsonhint.find(".collapseit")).toggle();
-	},
-	'click .intermediateWatsonbutton' (event, instance) {
-		$("textarea.rc-message-box__textarea").val(Template.instance().intermediateMessage.get());
-		$(".rc-message-box__send.js-send").trigger("click");
-		var msgs = window.watsonMessages;
-		var msg = ""
-		if(msgs.length > 0) {
-			msg = msgs[msgs.length -1];
-		}
-		Meteor.call('masai:storeIntermediateWatson', Template.instance().code.get(),msg, function(err, res) {});
-	},
-	'click .transferWatsonbutton' (event, instance) {
-		btn = $(event.target);
+Template.watson_travelFolder.trigger = function(event, instance) {
+	btn = $(event.target);
 		watsonhint = $(btn).parents(".watsonhint");
 		txt = watsonhint.find("textarea").val();
 		code = watsonhint.data("code");
@@ -161,14 +157,134 @@ Template.watson_travelFolder.events({
 
 			}
 		) ;
+};
+Template.watson_travelFolder.events({
+	'click .close-transfer'(event) {
+		event.preventDefault();
+		Meteor.call('masai:transferSecond', this.rid, function(error, result) {
+			if (error) {
+				swal({
+						title: t('Error'),
+						text: t(error),
+						type: 'warning',
+						timer: 1000
+					});
+				return;
+			}
+			swal({
+						title: t('Success'),
+						text: t('Erfolgreich übergeben'),
+						type: 'success',
+						timer: 1000
+					});
+		});
+	},
+	'click .close-wlivechat'(event) {
+		event.preventDefault();
+		optionsV = "";
+		$(window.watson_travelFolder.categories).each(function(idx, item) {
+			optionsV += "<option value='"+item.name+"'>"+item.name+"</option>";
+		});
+		var el = document.createElement("div");
+		el.innerHTML = t("Please_add_a_comment_desc")+'<br/><fieldset><select class="p-10 full-width" type="text" id="closechatid" '+
+			' style="display:block;margin-top:10px;" placeholder="'+t("Closereason")+'">'+optionsV+
+			'</select><br/></fieldset>';
+		swal({
+			title: t('Closing_chat'),
+			html : true,
+			content : el,
+			buttons: {
+				cancel: true,
+				confirm: true
+			  },
+			closeOnConfirm: false
+		}).then((ok) => {
+			if (ok) {
+				inputValue = $("#closecomment").val();
+				inputValue2 = $("#closechatid").val();
+
+				Meteor.call('masai:closeRoom2', this.rid, inputValue,inputValue2, function(error/*, result*/) {
+					if (error) {
+						return handleError(error);
+					}
+					swal({
+						title: t('Chat_closed'),
+						text: t('Chat_closed_successfully'),
+						type: 'success',
+						timer: 1000
+					});
+				});
+			}
+		});
+	},
+	'click .close-livechat'(event) {
+		event.preventDefault();
+		optionsV = "";
+		$(window.watson_travelFolder.categories).each(function(idx, item) {
+			optionsV += "<option value='"+item.name+"'>"+item.name+"</option>";
+		});
+		var el = document.createElement("div");
+		el.innerHTML = t("Please_add_a_comment_desc")+'<br/><fieldset><select class="p-10 full-width" type="text" id="closechatid" '+
+			' style="display:block;margin-top:10px;" placeholder="'+t("Closereason")+'">'+optionsV+
+			'</select><br/></fieldset>';
+		swal({
+			title: t('Closing_chat'),
+			html : true,
+			content : el,
+			buttons: {
+				cancel: true,
+				confirm: true
+			  },
+			closeOnConfirm: false
+		}).then((ok) => {
+			if (ok) {
+				inputValue = $("#closecomment").val();
+				inputValue2 = $("#closechatid").val();
+
+				Meteor.call('masai:closeRoom', this.rid, inputValue,inputValue2, function(error/*, result*/) {
+					if (error) {
+						return handleError(error);
+					}
+					swal({
+						title: t('Chat_closed'),
+						text: t('Chat_closed_successfully'),
+						type: 'success',
+						timer: 1000
+					});
+				});
+			}
+		});
+
+	},
+	'click .intentexpander' (event, instance) {
+		btn = $(event.target);
+		watsonhint = $(btn).parents(".watsonhint");
+		$(watsonhint.find(".collapseit")).toggle();
+	},
+	'click .intermediateWatsonbutton' (event, instance) {
+		$("textarea.rc-message-box__textarea").val(Template.instance().intermediateMessage.get());
+		$(".rc-message-box__send.js-send").trigger("click");
+		var msgs = window.watsonMessages;
+		var msg = ""
+		if(msgs.length > 0) {
+			msg = msgs[msgs.length -1];
+		}
+		Meteor.call('masai:storeIntermediateWatson', Template.instance().code.get(),msg, function(err, res) {});
+	},
+	'click .transferWatsonbutton' (event, instance) {
+		Template.watson_travelFolder.trigger(event, instance);
+	},
+	
+	'click .transferWatsonbutton2' (event, instance) {
+		Template.watson_travelFolder.trigger(event, instance);
+		
+		$(".travelfolderwatson .close-wlivechat").click();
+		
 	},
 	'click .customWatsonRequest' (event, instance) {
 		textArea = $(".customWatsonText");
 		window.customWatsonText = textArea.val();
 		checkWatson(Template.currentData().rid);
-		/*
-		console.log("clicked");
-		console.log( this.rid ); */
 	},
 	'click .travelfolder-merge' (event, instance) {
 		// open travelfolder in own window
@@ -194,9 +310,8 @@ Template.watson_travelFolder.events({
 
 });
 
-
 Template.watson_travelFolder.onCreated(function() {
-	var currentData = Template.currentData();
+	var currentData = Template.currentData(); 
 
 	this.visitorId = new ReactiveVar(null);
 	this.customFields = new ReactiveVar([]);
@@ -209,17 +324,24 @@ Template.watson_travelFolder.onCreated(function() {
 	this.roomId = null;
 
 	window.watsonInstance = this;
-
+	window.watson_travelFolder = this;
+	
 	if (currentData && currentData.rid) {
 		var self = this;
-		Meteor.call('masai:getWatsonIntermediate', function(error, result){
-			console.log("Result:", result);
+		Meteor.call('masai:findAllLCC', currentData.rid,  function(error, result){
+			window.watson_travelFolder.categories = result;
+		});
+		Meteor.call('masai:getWatsonIntermediate', currentData.rid, function(error, result){
+			
 			self.intermediateMessage.set(result);
 		});
 
 		this.autorun(() => {
 			const room = ChatRoom.findOne(currentData.rid);
+			if (room) {
+				
 			this.code.set(room.code);
+			}
 			this.roomId = Template.currentData().rid;
 			if (room && room.v && room.v._id) {
 				this.visitorId.set(room.v._id);
@@ -243,7 +365,11 @@ Template.watson_travelFolder.onCreated(function() {
 		checkWatson(currentData.rid);
 		window.watsonTimer = setInterval(function() {
 			checkWatson(currentData.rid);
+			Meteor.call('masai:findAllLCC', currentData.rid,  function(error, result){
+			window.watson_travelFolder.categories = result;
+		});
 		}, 1800);
+		
 	});
 
 });
@@ -291,7 +417,7 @@ function checkWatson(roomId) {
 	}
 
 	if(!currentRoom.open) {
-		window.watsonInstance.hints = [];
+		window.watsonInstance.hints = new ReactiveVar();
 		$("#aboutWatson").text(t("Watson_Deactivated"));
 		$("#watsonManualRequest").hide();
 	}
@@ -312,10 +438,20 @@ function checkWatson(roomId) {
 	window.watsonMessages = watsonMessages;
 
 	$("#loadinginfo").show();
-	Meteor.call('masai:checkWatson',FlowRouter.current().params.code,JSON.stringify(watsonMessages),
+	console.log(currentRoom);
+	Meteor.call('masai:checkWatson',currentRoom.code,JSON.stringify(watsonMessages),
 	function(err, result) {
 		totals =result;
-		console.log(totals);
+		if (!totals) {
+			return;
+		}
+		if (!window.watsonInstance) {
+			return;
+		}
+		
+		if (!window.watsonInstance.hints) {
+			return;
+		}
 		window.watsonInstance.hints.set(totals);
 		$("#loadinginfo").hide();
 		setTimeout(function() {
@@ -323,55 +459,7 @@ function checkWatson(roomId) {
 		}, 350);
 	}) ;
 
-
 	return;
-
-	var wsmgs = [];
-	if ($(".message[data-username*=00],.message[data-username*=guest-]").not("own").not(".system").find(".body").not(".validated").length <= 0) {
-		return;
-	}  /* then */
-	var atLeastOne = false;
-	/*
-	if ($($(".message[data-username*=00],.message[data-username*=guest-]").not(".own").not(".system").find(".body.validated")).last().html()!=null &&
-	    $($(".message[data-username*=00],.message[data-username*=guest-]").not(".own").not(".system").find(".body.validated")).last().html().trim()!="") {
-		wsmgs.push($($(".message[data-username*=00],.message[data-username*=guest-]").not(".own").not(".system").find(".body.validated")).last().html().trim());
-	}
-	if ($($(".message[data-username*=00],.message[data-username*=guest-]").not(".own").not(".system").find(".body.validated")).last().prev(".body.validated")!=null &&
-	    $($(".message[data-username*=00],.message[data-username*=guest-]").not(".own").not(".system").find(".body.validated")).last().prev(".body.validated").html()!=null &&
-		$($(".message[data-username*=00],.message[data-username*=guest-]").not(".own").not(".system").find(".body.validated")).last().prev(".body.validated").html().trim()!="") {
-		wsmgs.push($($(".message[data-username*=00],.message[data-username*=guest-]").not(".own").not(".system").find(".body.validated")).last().prev(".body.validated").html().trim());
-	} */
-	$($(".message[data-username*=00],.message[data-username*=guest-]").not(".own").not(".system").find(".body").not(".validated").get().reverse()).each(function(idx, item) {
-		$(item).addClass("validated");
-		if ($(item).text().trim()=="") {
-			return;
-		} /* then */
-		if (idx>3) {
-			return;
-		} /* then */
-		wsmgs.push($(item).text().trim());
-		atLeastOne = true;
-	});
-	if (!atLeastOne) {
-		return;
-	} /* then */
-	if (wsmgs.length<=0) {
-		return;
-	} /* then */
-	if (location.href.indexOf("/live/")<=5) {
-		return;
-	}
-	$("#loadinginfo").show();
-	Meteor.call('masai:checkWatson',FlowRouter.current().params.code,JSON.stringify(wsmgs),
-	function(err, result) {
-		totals =result;
-		console.log(totals);
-		window.watsonInstance.hints.set(totals);
-		$("#loadinginfo").hide();
-		setTimeout(function() {
-			$($(".collapseit").eq(0)).show();
-		}, 350);
-	}) ;
 
 }
 

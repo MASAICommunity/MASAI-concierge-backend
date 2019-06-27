@@ -1,4 +1,9 @@
 import moment from 'moment';
+import swal from 'sweetalert';
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
+import { modal, ChatRoom } from 'meteor/rocketchat:ui';
 
 var message = null;
 var messageListenerRegistered = false;
@@ -11,6 +16,50 @@ Template.visitorInfo_travelFolder.helpers({
 	user() {
 		const user = Template.instance().user.get();
 		return user;
+	},
+	
+	phone () {
+		if (Template.instance().vx.get() == null) {
+			return;
+		}
+		return Template.instance().vx.get().phone;
+	},
+	visitorPhone () {
+		if (Template.instance().vx.get() == null || Template.instance().vx.get().phone == null || Template.instance().vx.get().phone.length == 0) {
+			return;
+		}
+		return Template.instance().vx.get().phone[0];
+	},
+	vx () {
+		return Template.instance().vx.get();
+	},
+	
+	
+	visitorEmail () {
+		if (Template.instance().vx.get() == null || Template.instance().vx.get().visitorEmails == null || Template.instance().vx.get().visitorEmails.length == 0) {
+			return; 
+		}
+		return Template.instance().vx.get().visitorEmails[0];
+	},
+	visitorEmails () {
+		if (Template.instance().vx.get() == null || Template.instance().vx.get().visitorEmails == null || Template.instance().vx.get().visitorEmails.length == 0) {
+			return;
+		}
+		return Template.instance().vx.get().visitorEmails;
+	},
+	
+	ip () {
+		if (Template.instance().vx.get() == null) {
+			return;
+		}
+		return Template.instance().vx.get().ip;
+	},
+	
+	userAgent () {
+		if (Template.instance().vx.get() == null) {
+			return;
+		}
+		return Template.instance().vx.get().userAgent;
 	},
 	
 	formatDate(datetime, format) {
@@ -114,15 +163,17 @@ Template.visitorInfo_travelFolder.helpers({
 
 	roomOpen() {
 		const room = ChatRoom.findOne({ _id: this.rid });
-
+		if (!room) {
+			return false;
+		}
 		return room.open
 	},
 
 	showTravelfolder() {
 		//hide travel folder functionallity on incoming sms requests
 		const instance = Template.instance();
-		const user = instance.user.get();
-		return !(user.phone && user.phone instanceof Array && user.phone.length > 0);
+		const user = instance.user.get(); 
+		return user!=null;
 	},
 
 	guestPool() {
@@ -153,10 +204,8 @@ Template.visitorInfo_travelFolder.helpers({
 	notes(){
 		notes = Template.instance().notes.get();
 		if(notes)
-		return notes;
-
-		}
-
+			return notes;
+	}
 });
 
 Template.visitorInfo_travelFolder.events({
@@ -168,45 +217,105 @@ Template.visitorInfo_travelFolder.events({
 	},
 	'click .travelfolder-restart' (event, instance) {
 		event.preventDefault();
+		var el = document.createElement("div");
+		el.innerHTML = t("Restart_desc")+'<br/><fieldset><input type="datetime-local" id="restartdate" style="display:block;"  placeholder="'+t("Restart_date")+'"> '+
+			'<input type="text" id="restartReason" style="display:block;"  placeholder="'+t("Restart_reason")+'"></fieldset>';
 		swal({
 			title: t('Restart_title'),
 			html : true,
-			text : t("Restart_desc")+'<br/><fieldset><input type="datetime-local" id="restartdate" style="display:block;"  placeholder="'+t("Restart_date")+'"> '+
-			'<input type="text" id="restartReason" style="display:block;"  placeholder="'+t("Restart_reason")+'"></fieldset>',
+			content : el,
+			buttons: {
+				cancel: true,
+				confirm: true
+			  },
 			showCancelButton: true,
 			confirmButtonColor: '#3085d6',
 			cancelButtonColor: '#d33',
 			confirmButtonText: t('Yes'),
 			closeOnConfirm: false
-		}, () => {
-			restartDate = $("#restartdate").val();
+		}).then((ok)=>{
+			if (ok) {
+				restartDate = $("#restartdate").val();
 
-			if (restartDate==null || restartDate=="") {
-				swal.showInputError(t('Provide_restart_date'));
-				return false;
-			} /* then */
+				if (restartDate==null || restartDate=="") {
+					
+					swal({
+						title: t('Error'),
+						text: t('Provide_restart_date'),
+						type: 'error',
+						timer: 5000,
+						showConfirmButton: false
+					});
+					return false;
+				} /* then */
 
-			restartReason = $("#restartReason").val();
-			if (restartReason==null || restartReason=="") {
-				swal.showInputError(t('Provide_restart_reason'));
-				return false;
-			} /* then */
-			now = new Date();
-			$lastDate = new Date(new Date(restartDate).getTime() + 0 * now.getTimezoneOffset() * 60000);
-			Meteor.call('masai:remark', instance.roomId,$lastDate.toISOString(),restartReason, function(error, result){
-				swal({
-					title: t('Chat_remarked'),
-					text: t('Chat_remarked_successfully'),
-					type: 'success',
-					timer: 1000,
-					showConfirmButton: false
+				restartReason = $("#restartReason").val();
+				if (restartReason==null || restartReason=="") {
+					swal({
+						title: t('Error'),
+						text: t('Provide_restart_reason'),
+						type: 'error',
+						timer: 5000,
+						showConfirmButton: false
+					});
+					return false;
+				} /* then */
+				now = new Date();
+				$lastDate = new Date(new Date(restartDate).getTime() + 0 * now.getTimezoneOffset() * 60000);
+				Meteor.call('masai:remark', instance.roomId,$lastDate.toISOString(),restartReason, function(error, result){
+					swal({
+						title: t('Chat_remarked'),
+						text: t('Chat_remarked_successfully'),
+						type: 'success',
+						timer: 1000,
+						showConfirmButton: false
+					});
+					setTimeout(function() {
+						RocketChat.tf.syncDelayed ();
+						Session.set('openedRoom');
+						FlowRouter.go('/home');
+					}, 1100);
 				});
-				setTimeout(function() {
-					RocketChat.tf.syncDelayed ();
-					Session.set('openedRoom');
-					FlowRouter.go('/home');
-				}, 1100);
-			});
+			}
+		});
+	},
+	
+	'click .close-wlivechat'(event) {
+		event.preventDefault();
+		optionsV = "";
+		$(window.visitorInfo_travelFolderSelf.categories).each(function(idx, item) {
+			optionsV += "<option value='"+item.name+"'>"+item.name+"</option>";
+		});
+		var el = document.createElement("div");
+		el.innerHTML = t("Please_add_a_comment_desc")+'<br/><fieldset><select class="p-10 full-width" type="text" id="closechatid" '+
+			' style="display:block;margin-top:10px;" placeholder="'+t("Closereason")+'">'+optionsV+
+			'</select><br/></fieldset>';
+		swal({
+			title: t('Closing_chat'),
+			html : true,
+			content : el,
+			buttons: {
+				cancel: true,
+				confirm: true
+			  },
+			closeOnConfirm: false
+		}).then((ok) => {
+			if (ok) {
+				inputValue = $("#closecomment").val();
+				inputValue2 = $("#closechatid").val(); 
+
+				Meteor.call('masai:closeRoom2', this.rid, inputValue,inputValue2, function(error/*, result*/) {
+					if (error) {
+						return handleError(error);
+					}
+					swal({
+						title: t('Chat_closed'),
+						text: t('Chat_closed_successfully'),
+						type: 'success',
+						timer: 1000
+					});
+				});
+			}
 		});
 	},
 	'click .close-livechat'(event) {
@@ -215,50 +324,36 @@ Template.visitorInfo_travelFolder.events({
 		$(window.visitorInfo_travelFolderSelf.categories).each(function(idx, item) {
 			optionsV += "<option value='"+item.name+"'>"+item.name+"</option>";
 		});
-		/*
-		optionsV  = "<option value='"+TAPi18n.__("close_reason1")+"'>"+TAPi18n.__("close_reason1")+"</option>";
-		optionsV += "<option value='"+t("close_reason2")+"'>"+t("close_reason2")+"</option>";
-		optionsV += "<option value='"+t("close_reason3")+"'>"+t("close_reason3")+"</option>";
-		optionsV += "<option value='"+t("close_reason4")+"'>"+t("close_reason4")+"</option>";
-		optionsV += "<option value='"+t("close_reason5")+"'>"+t("close_reason5")+"</option>";
-		optionsV += "<option value='"+t("close_reason6")+"'>"+t("close_reason6")+"</option>";
-		optionsV += "<option value='"+t("close_reason7")+"'>"+t("close_reason7")+"</option>";
-		optionsV += "<option value='"+t("close_reason8")+"'>"+t("close_reason8")+"</option>";
-		optionsV += "<option value='"+t("close_reason9")+"'>"+t("close_reason9")+"</option>";
-		optionsV += "<option value='"+t("close_reason10")+"'>"+t("close_reason10")+"</option>";
-		*/
+		var el = document.createElement("div");
+		el.innerHTML = t("Please_add_a_comment_desc")+'<br/><fieldset><select class="p-10 full-width" type="text" id="closechatid" '+
+			' style="display:block;margin-top:10px;" placeholder="'+t("Closereason")+'">'+optionsV+
+			'</select><br/></fieldset>';
 		swal({
 			title: t('Closing_chat'),
 			html : true,
-			text : t("Please_add_a_comment_desc")+'<br/><fieldset><select class="p-10 full-width" type="text" id="closechatid" '+
-			' style="display:block;margin-top:10px;" placeholder="'+t("Closereason")+'">'+optionsV+'</select><br/><input type="text" id="closecomment" style="display:block;"  placeholder="'+t("Please_add_a_comment")+'"></fieldset>',
-			showCancelButton: true,
+			content : el,
+			buttons: {
+				cancel: true,
+				confirm: true
+			  },
 			closeOnConfirm: false
-		},() => {
-			inputValue = $("#closecomment").val();
-			inputValue2 = $("#closechatid").val();
-			if (!inputValue) {
-			//	swal.showInputError(t('Please_add_a_comment_to_close_the_room'));
-			//	return false;
-			}
+		}).then((ok) => {
+			if (ok) {
+				inputValue = $("#closecomment").val();
+				inputValue2 = $("#closechatid").val();
 
-			if (s.trim(inputValue) === '') {
-			//	swal.showInputError(t('Please_add_a_comment_to_close_the_room'));
-			//	return false;
-			}
-
-			Meteor.call('masai:closeRoom', this.rid, inputValue,inputValue2, function(error/*, result*/) {
-				if (error) {
-					return handleError(error);
-				}
-				swal({
-					title: t('Chat_closed'),
-					text: t('Chat_closed_successfully'),
-					type: 'success',
-					timer: 1000,
-					showConfirmButton: false
+				Meteor.call('masai:closeRoom', this.rid, inputValue,inputValue2, function(error/*, result*/) {
+					if (error) {
+						return handleError(error);
+					}
+					swal({
+						title: t('Chat_closed'),
+						text: t('Chat_closed_successfully'),
+						type: 'success',
+						timer: 1000
+					});
 				});
-			});
+			}
 		});
 
 	},
@@ -267,20 +362,17 @@ Template.visitorInfo_travelFolder.events({
 		event.preventDefault();
 
 		swal({
-			title: t('Would_you_like_to_return_the_inquiry'),
-			html : true,
-			text : t("Please_add_a_comment")+'<br/><fieldset><input type="text" id="forwardcomment" style="display:block;"  placeholder="'+t("Please_add_a_comment")+'"></fieldset>',
-			showCancelButton: true,
+			text : t('Would_you_like_to_return_the_inquiry'),
+			buttons: {
+				cancel: true,
+				confirm: true
+			  },
 			confirmButtonColor: '#3085d6',
 			cancelButtonColor: '#d33',
 			confirmButtonText: t('Yes')
-		}, () => {
-			inputValue = $("#forwardcomment").val();
-			if (s.trim(inputValue) === '') {
-				swal.showInputError(t('Please_add_a_comment_to_close_the_room'));
-				return false;
-			}
-		  Meteor.call('masai:returnAsInq', this.rid, inputValue, function(error/*, result*/) {
+		}).then((ok) => {
+		  if (ok) {
+			Meteor.call('masai:returnAsInq', this.rid, null, function(error/*, result*/) {
 				if (error) {
 					console.log(error);
 				} else {
@@ -288,6 +380,7 @@ Template.visitorInfo_travelFolder.events({
 					FlowRouter.go('/home');
 				}
 			});
+		  }
 		});
 	},
 
@@ -431,12 +524,8 @@ Template.visitorInfo_travelFolder.events({
 		$('.note-form textarea').val("");
 		Meteor.call('masai:addNote', template.roomId,val, function(error, result){
 			template.notes.set(result);
-
-
 		});
-
 	}
-
 });
 
 window.addEventListener('message', function(e) {
@@ -459,13 +548,31 @@ window.addEventListener('message', function(e) {
 
 window.addEventListener('room-opened', function(e) {
 	try{
+		
 		var id = window.location.href.substr(window.location.href .lastIndexOf('/') + 1);
-		var room = RocketChat.models.Rooms.findOne({code: parseInt(id)});
+		var room = RocketChat.models.Rooms.findOne({_id: id});
 
 		if(room && room.fname){
-		setTimeout(function() {
-			$(".room-title").text(room.label + " - " + room.fname)
-		}, 1000);
+			setTimeout(function() {
+				$(".room-title").text(room.label + " - " + room.fname)
+			}, 1000);
+		} 
+		try {
+			
+			
+			if (room.open && $(".active button[aria-label='Watson']").length <= 0) {
+				
+				Meteor.call('masai:getRoom',room._id, function(error, roomx){
+					
+					if (roomx && roomx.hp && roomx.hp.showwatson) {
+					$("button[aria-label='Watson']").click();
+					}
+				});
+			}
+			
+		}
+		catch(ex) {
+			
 		}
 	}
 	catch(e) {
@@ -479,6 +586,7 @@ Template.visitorInfo_travelFolder.onCreated(function() {
 	this.action = new ReactiveVar();
 	this.user = new ReactiveVar();
 	this.notes = new ReactiveVar();
+	this.vx = new ReactiveVar();
 
 	this.roomId = null;
 
@@ -491,26 +599,38 @@ Template.visitorInfo_travelFolder.onCreated(function() {
 		Meteor.call('masai:getNotes',currentData.rid, function(error, result){
 			self.notes.set(result);
 		});
-		Meteor.call('masai:findAllLCC', function(error, result){
-			window.visitorInfo_travelFolderSelf.categories = result;
-		});
 		this.autorun(() => {
 			const room = ChatRoom.findOne(currentData.rid);
+			console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+			console.log(room);
+			console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 			this.roomId = Template.currentData().rid;
+			
+		Meteor.call('masai:findAllLCC', currentData.rid, function(error, result){
+			window.visitorInfo_travelFolderSelf.categories = result;
+		});
 			if (room && room.v && room.v._id) {
-				this.visitorId.set(room.v._id);
-				} else {
-				this.visitorId.set();
+				self.visitorId.set(room.v._id);
+				if (self.user.get()==null) {
+					self.user.set(Meteor.users.findOne({ '_id': self.visitorId.get() }));
 				}
+				if (self.user.get()==null) {
+					Meteor.call('masai:getUser2',currentData.rid, function(error, result){
+						self.vx.set(result);
+						self.user.set(result);
+					});
+				}
+				else {
+					self.vx.set(self.user.get());
+				}
+			} else {
+			self.visitorId.set();
+			}
 		});
 
 		this.subscribe('livechat:visitorInfo', { rid: currentData.rid });
 	}
 
-	this.autorun(() => {
-		this.user.set(Meteor.users.findOne({ '_id': this.visitorId.get() }));
-
-	});
 });
 
 Meteor.startup(function(){
@@ -518,12 +638,10 @@ Meteor.startup(function(){
 		$(document).ready(function() {
 			Meteor.call('masai:retrieveAPI2',JSON.stringify([]),
 				function(err, result) {
-				console.log(result);
 				GRANT_URL = result;
 			}) ;
 			
 			Meteor.call('masai:retrieveAPI3',function(error, result){
-				console.log(result);
 				TRAVELFOLDER_URL = result;
 			});
 		});

@@ -1,3 +1,17 @@
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { AccountBox } from 'meteor/rocketchat:ui';
+extconfRoutes = FlowRouter.group({
+	prefix: '/extended-configuration',
+	name: 'extconf'
+});
+
+AccountBox.addRoute({
+	name: 'extconf',
+	path: '/',
+	i18nPageTitle: 'Handelspartner Setup',
+	pageTemplate: 'extconf'
+}, extconfRoutes);
+
 phoneRoutes = FlowRouter.group({
 	prefix: '/phone',
 	name: 'phone'

@@ -4,6 +4,7 @@
 		<div class="user-view {{showDetail}}">
 			<div class="about clearfix">
 				<div class="info">
+					{{#if room.code}} ChatID: {{room.code}} {{/if}}
 					<h3>Watson (Wissensbasis)</h3>
 				</div>
 
@@ -21,10 +22,19 @@
 				{{/with}}
 			</div>
 
+				<nav class="centered-buttons">
+
+					{{#if roomOpen}} 
+						<button class='button button-block close-transfer'><span><i class='icon-download'></i> An 2.nd Weiterleiten</span></button>
+						<button class='button button-block close-wlivechat'><span><i class='icon-download'></i> Webchat Schlie&szlig;en</span></button>
+						<button class='button button-block close-livechat'><span><i class='icon-download'></i> {{_ "Close"}}</span></button>
+					{{/if}}
+				</nav>
 			<div class="info">
 				<p id="aboutWatson">
 				{{_ "About_Watson"}}
 				</p>
+				
 
 				<div style="display:none;" id="loadinginfo">
 					<i class="fa fa-spin fa-spinner"></i> ... {{_ "Loading_Watson"}}
@@ -46,8 +56,9 @@
 							<div style="display:none;" class="collapseit">
 								<p><i>{{hint.org}}</i></p>
 								<br/>
-								<p class="hintext" style="padding-left:10px;">{{hint.text}}</p>
+								<p class="hintext" style="padding-left:10px;">{{trimStopText hint.text}}</p>
 								<textarea class="watsonalternative full-width" placeholder="{{_ "Alternative_Watson"}}"></textarea>
+								<button class="transferWatsonbutton2 button  button button-block ">{{_ "Übernehmen und Schließen"}}</button>
 								<button class="transferWatsonbutton button  button button-block ">{{_ "Use_Watson"}}</button>
 							</div>
 						</div>

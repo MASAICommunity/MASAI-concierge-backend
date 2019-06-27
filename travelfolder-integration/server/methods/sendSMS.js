@@ -1,5 +1,5 @@
 Meteor.methods({
-	'masai:sendSMS'(num, txt) {
+	'masai:sendSMS'(num, txt, assoid) {
 		
 		const user = RocketChat.models.Users.findOneById(Meteor.userId());
 		const agent = {
@@ -8,19 +8,45 @@ Meteor.methods({
 		};
 		const me = user;
 		let visitor = RocketChat.models.Users.findOneByUsername(num);
+		if (visitor) {
+			
+		} else {
+			visitor = RocketChat.models.LivechatVisitors.findOneVisitorByPhone(num);
+			if (visitor) {
+				visitor.profile = visitor;
+			}
+		}
+		asso =  RocketChat.models.Phoneasso.find({_id:assoid}).fetch();
+		if (asso!=null && asso.length>0) {
+			asso = asso[0];
+		} else {
+			asso = {
+				interfacet : 0,
+				num : 0
+			};
+		}
 		let sendStub = {
 			message: {
 				_id: Random.id(),
 				msg: txt,
 				u: user,
-				noinq: 1
+				noinq: 1,
+					asso : asso,
+				origin : asso.num,
+				dbsms : asso.interfacet
 			},
 			roomInfo: {
 				rbInfo: {
+					asso : asso,
 					source: "mail",
+					origin : asso.num,
 					visitorSendInfo: num,
-					serviceName: "lotusMail"
-				}
+					serviceName: "lotusMail",
+					dbsms : asso.interfacet
+				},
+				origin : asso.num,
+					asso : asso,
+				dbsms : asso.interfacet
 			}
 		};
 		if (visitor) {
@@ -40,7 +66,13 @@ Meteor.methods({
 			const guestInfo = sendStub;
 			console.log(guestInfo);
             const userId = RocketChat.Livechat.registerGuest(guestInfo);
-			visitor = RocketChat.models.Users.findOneById(userId);
+			visitor = RocketChat.models.LivechatVisitors.findById(userId).fetch();
+			if (visitor==null || visitor.length <= 0) {
+			visitor = RocketChat.models.Users.findById(userId);
+			}
+			else {
+				visitor = visitor[0];
+			} 
 		
 		}
 		sendStub.u = user;
@@ -68,6 +100,7 @@ Meteor.methods({
 				}
 			}
 		});
+		
 		
 		RocketChat.tf.closeMasaiRoom(me, room[0], null, null);
 

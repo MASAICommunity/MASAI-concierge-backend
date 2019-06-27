@@ -1,9 +1,20 @@
-import moment from 'moment';
+import moment from 'moment'; 
+import swal from 'sweetalert';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { AccountBox } from 'meteor/rocketchat:ui';
+  AccountBox.addItem({
+	name: 'Handelspartner Setup',
+	icon: 'configuration',
+	href: '/extended-configuration/',
+	condition: () => {
+		return RocketChat.settings.get('Livechat_enabled') && RocketChat.authz.hasAllPermission('view-privileged-setting');
+	}
+});
 /**
  * Created by Wolfgang on 22.02.2017.
  */
   AccountBox.addItem({
-	name: 'Phone',
+	name: 'Chat Eingangsquellen',
 	icon: 'phone',
 	href: 'phone-asso',
 	condition: () => {
@@ -19,7 +30,7 @@ import moment from 'moment';
 	}
 });
  AccountBox.addItem({
-	name: 'Category',
+	name: 'Chat Kategorien',
 	icon: 'post',
 	href: 'livechatmanagement-categories',
 	condition: () => {
@@ -41,10 +52,10 @@ RocketChat.TabBar.removeGroup('starred-messages',['live']);
 RocketChat.TabBar.addButton({
 	groups: ['live'],
 	id: 'travelfolder',
-	i18nTitle: 'Travelfolder',
+	i18nTitle: 'Chat-Funktionen',
 	icon: 'info-circled',
 	template: 'visitorInfo_travelFolder',
-	order: 0,
+	order: 33,
 	initialOpen: true
 });
 RocketChat.TabBar.addButton({
@@ -53,7 +64,7 @@ RocketChat.TabBar.addButton({
 	i18nTitle: 'Watson',
 	icon: 'hubot',
 	template: 'watson_travelFolder',
-	order: 0,
+	order: 34,
 	initialOpen: true
 });
 RocketChat.tf = {};
@@ -63,9 +74,7 @@ RocketChat.tf.validateIncoming = function() {
 	if (num>0) {
 		$($(".livechat-section h3.rooms-list__type").eq(1)).append("<span class='incomingcount'>"+num+"</span>")
 	}
-	if ($(".rooms-list__toolbar-search").length<=0 && $(".rc-input__element").val()!=null && $(".rc-input__element").val()!="") {
-		$(".rc-input__element").val(null);
-	}
+	
 	$(".livechat-section .sidebar-item-small").each(function(idx, item) {
 		var ts = $(item).attr("data-ts");
 		if (ts!=null && ts!="") {
@@ -74,13 +83,22 @@ RocketChat.tf.validateIncoming = function() {
 				var ms = endDate.diff(moment(new Date(ts)));
 				var d = moment.duration(ms);
 				var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
+				
+				var delay = RocketChat.settings.get('Reisebuddy_WATSON_DELAY');
+				if ((delay * 1000) < ms) {
+					if ($(item).parents("[data-autoprocessing='1']").length>0) {
+						s += ' <svg class="rc-icon sidebar__toolbar-button-icon sidebar__toolbar-button-icon--magnifier" aria-hidden="true"> '+
+						' <use xlink:href="#icon-warning"></use> </svg>';
+					}
+				}
 			$(item).html(s);
 		} /* then */
 		else {
 			ts = $(item).attr("data-ts1");
 			if (ts!=null && ts!="") {
 				endDate = moment(new Date());
-					var s =  moment(new Date(ts)).format("HH:mm:ss");
+				var d = moment.duration(ms);
+				var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
 				$(item).html(s);
 			} /* then */
 		}
@@ -91,35 +109,94 @@ RocketChat.tf.validateIncoming = function() {
 			$(item).remove();
 		}
 	});
+	$(".rooms-list__list.openchats .groupset").each(function(idx, item) {
+		if($(item).find("li").length<=0) {
+			$(item).remove();
+		}
+	});
 	$(".rooms-list__list.inquiries > li a").each(function(idx, item) {
 		var org = $(item).attr("data-origin");
-		if (org!=null) {
-			if ($(".rooms-list__list.inquiries #"+org).length<=0) {
-				$(".rooms-list__list.inquiries").prepend("<div id='"+org+"' class='groupset'><h4>"+org+"</h4><div class='groupsetcontent'></div></div>");
+		var hapaid = $(item).attr("data-hapaid");
+		var autoprocessing = $(item).attr("data-autoprocessing");
+		if (org!=null && org!="") {
+			var org1 = org.split(" ").join("_");
+			if (autoprocessing=="1") {
+				org1 = "x"+org1;
+				org = "Watson";
 			}
-			$($(item).parents(".sidebar-item")).detach().appendTo( $(".rooms-list__list.inquiries #"+org+" .groupsetcontent"));
+			if ($(".rooms-list__list.inquiries #x"+org1).length<=0) {
+				$(".rooms-list__list.inquiries").prepend("<div id='x"+org1+"' class='groupset'><h4>"+org+"</h4><div class='groupsetcontent'></div></div>");
+			}
+			$($(item).parents(".sidebar-item")).detach().appendTo( $(".rooms-list__list.inquiries #x"+org1+" .groupsetcontent"));
 		} /* then */
 	});
+	
+	$(".rooms-list__list.openchats > li a").each(function(idx, item) {
+		var org = $(item).attr("data-origin");
+		var hapaid = $(item).attr("data-hapaid");
+		var autoprocessing = $(item).attr("data-autoprocessing");
+		if (org!=null && org!="") {
+			var org1 = org.split(" ").join("_");
+			if (autoprocessing=="1") {
+				org1 = "x"+org1;
+				org = "Watson";
+			}
+			if ($(".rooms-list__list.openchats #x"+org1).length<=0) {
+				$(".rooms-list__list.openchats").prepend("<div id='x"+org1+"' class='groupset'><h4>"+org+"</h4><div class='groupsetcontent'></div></div>");
+			}
+			$($(item).parents(".sidebar-item")).detach().appendTo( $(".rooms-list__list.openchats #x"+org1+" .groupsetcontent"));
+		}
+	});
 };
+RocketChat.tf.formatDate = function(datetime, format) {
+	 	if(datetime) {
+			// can use other formats like 'lll' too
+			return moment(datetime).format(format);
+		}
+		else {
+			return "";
+		}
+
+	};
 RocketChat.tf.syncDelayed = function () {
+	try{
+		
+		var id = window.location.href.substr(window.location.href .lastIndexOf('/') + 1);
+		var room = RocketChat.models.Rooms.findOne({_id: id});
+
+		Meteor.call('masai:getRoom',room._id, function(error, roo){
+			if (roo && roo.closedBy && roo.closedBy.username && roo.closedBy.username.indexOf("guest")>=0) {
+				$(".rc-message-box .alreadyClosed").remove(); 
+				$(".rc-message-box").prepend("<div class='alreadyClosed'>"+RocketChat.settings.get("TRAVELFOLDER_ALREADYCLOSED_MESSAGE")+"</div>");
+			}
+		});
+		
+	}
+	catch(e) {
+	}
 	Meteor.call('masai:getDelayedRooms',function(err, result) {
 
 		if ($(".rooms-list__list.inquiries").length>0) {
+			console.log(result);
 			$(".restart-item").remove();
 			$(".rooms-list__empty-room").show();
 			htx = "";
 			$(result).each(function(idx, item) {
-			$(".rooms-list__empty-room").hide();
+			$(".rooms-list__empty-room").hide(); 
+			dx = item._updatedAt==null?item.ts:item._updatedAt; 
+			format = RocketChat.tf.formatDate(dx, "YYYY-MM-DD HH:mm:ss");
+			format = '<small class="sidebar-item-small" data-ts1="'+format+'"/>';
 
 			htx +=	'<li class="sidebar-item restart-item" data-message="'+(item.closecomment)+'" data-id="'+(item._id)+'">'+
 					'<div class="sidebar-item__user-status sidebar-item__user-status--offline"></div>'+
-					'<a class="sidebar-item__link outdatetrigger restarttrigger "  data-message="'+(item.closecomment)+'"  data-id="'+(item._id)+'" href="javascript:void(0);" data-href="/live/'+(item.code)+'" title="'+(item.label)+'">'+
+					'<a class="sidebar-item__link outdatetrigger restarttrigger " data-code="'+(item.code)+
+					'" data-origin="'+((item.origin==null)?"":item.origin)+'"  data-message="'+(item.closecomment)+'"  data-id="'+(item._id)+'" href="javascript:void(0);" data-href="/live/'+(item._id)+'" title="'+(item.fname)+'">'+
 					'	<div class="sidebar-item__picture">'+
 					'		<svg class="rc-icon sidebar-item__icon sidebar-item__icon--livechat" aria-hidden="true">'+
 					'			<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#icon-livechat"></use>'+
 					'		</svg>'+
 					'	</div>'+
-					'	<div class="sidebar-item__name">'+(item.label)+'</div>'+
+					'	<div class="sidebar-item__name"><div class="sidebar-item__ellipsis"><div class="sidebar-item-innername">'+(item.fname)+'</div>'+format+'</div></div>'+
 					'	<div class="sidebar-item__menu">'+
 					'		<svg class="rc-icon sidebar-item__menu-icon sidebar-item__menu-icon--menu" aria-hidden="true">'+
 					'			<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#icon-menu"></use>'+
@@ -141,6 +218,7 @@ Meteor.startup(function(){
 		{
 			en: {
 				targettext:'SMS Text',
+				restarttitle : 'Wiedervorlage ChatID ',
 				targetnumber : 'SMS Nummer (Empfänger) bitte mit Ländervorwahl',
 				Send_SMS: 'Über diese Funktion kannst du einen SMS versenden. Für diese SMS wird eine Chat-ID vergeben. Der Chat wird nach dem versenden geschlossen. Du kannst diesen Chat über "Chat Suchen" oder "SMS-Nummer suchen" anzeigen lassen',
 				SMS_Send: 'SMS Senden',
@@ -187,6 +265,7 @@ Meteor.startup(function(){
           Send_Intermediate_Request: "Zwischenantwort senden"
 				},de: {
 					targettext:'SMS Text',
+				restarttitle : 'Wiedervorlage ChatID ',
 				targetnumber : 'SMS Nummer (Empfänger) bitte mit Ländervorwahl',
 				Send_SMS: 'Über diese Funktion kannst du einen SMS versenden. Für diese SMS wird eine Chat-ID vergeben. Der Chat wird nach dem versenden geschlossen. Du kannst diesen Chat über "Chat Suchen" oder "SMS-Nummer suchen" anzeigen lassen',
 				SMS_Send: 'SMS Senden',
@@ -234,26 +313,34 @@ Meteor.startup(function(){
 				}
 		},"project"
 	);
-		$("body").on("click", ".toolbar__search .rc-input__icon", function(e) {
-			// rc-input__element
-			$(".toolbar__search input.rc-input__element").val(null);
-		});
+	
 		$("body").on('click', '.restarttrigger', function (e) {
 			rid = $(this).data("id");
 			htarget = $(this).data("href");
 			msg = $(this).data("message");
+			code = $(this).data("code");
 			swal({
-				title: t('Livechat_Take_Confirm'),
-				text: `${ t('Message') }: `+msg,
+				title: TAPi18n.__('Livechat_Take_Confirm'),
+				text: `${ TAPi18n.__('restarttitle') } `+code+": "+msg,
 				showCancelButton: true,
 				confirmButtonColor: '#3085d6',
 				cancelButtonColor: '#d33',
-				confirmButtonText: t('Take_it')
-			}, (isConfirm) => { 
+				confirmButtonText: TAPi18n.__('Take_it')
+			}).then((isConfirm) => { 
 				if (isConfirm) {
 					Meteor.call('masai:unmark', rid, function(error, result) {
+						if (!result) {
+							swal({
+								title: TAPi18n.__('Livechat_Take_Confirm'),
+								text: `${ TAPi18n.__('Wiedervorlegen fehlgeschlagen') } `,
+								showCancelButton: true,
+								confirmButtonColor: '#3085d6',
+								cancelButtonColor: '#d33',
+								confirmButtonText: TAPi18n.__('Ok')
+							})
+							return;
+						}
 						inqId = result._id;
-						console.log("Going to take inquiery: "+(result._id));
 						Meteor.call('livechat:takeInquiry', inqId, (error, result) => {
 							RocketChat.tf.syncDelayed ();
 							if (!error) {
@@ -269,20 +356,32 @@ Meteor.startup(function(){
 			Meteor.call('masai:getPhoneAssos', function(err, rr) {
 				optionx = "<p><select style='width:100%;' id='phoneassoid'>";
 				$(rr).each(function(idx, item) {
+					if (!item.num) {
+						return;
+					}
+					if (item.num.indexOf("0049")>=0 || item.num.indexOf("0043")>=0) {
 					optionx+=" <option value='"+item._id+"'>"+item.name+" ("+item.num+")</option>";
+						
+					}
 				});
 				optionx += "</select></p>";
-				swal({
-					title: t('SMS_Send'),
-				html : true,
-					text : '<p style="text-align:left;font-size:13px;">'+ t("Send_SMS")+'<br/><fieldset style="text-align:left;font-size:9px;"><input type="text" id="targetnumber" style="display:block;"  placeholder="'+t("targetnumber")+'"> '+
+				var cax = document.createElement("div");
+				var ax = '<p style="text-align:left;font-size:13px;">'+ TAPi18n.__("Send_SMS")+'<br/><fieldset style="text-align:left;font-size:9px;"><input type="text" id="targetnumber" style="display:block;"  placeholder="'+TAPi18n.__("targetnumber")+'"> '+
 					optionx+
-					'<input type="text" id="targettext" style="display:block;"  placeholder="'+t("targettext")+'"></fieldset></p>',
+					'<input type="text" id="targettext" style="display:block;"  placeholder="'+TAPi18n.__("targettext")+'"></fieldset></p>';
+				cax.innerHTML=ax;
+				swal({
+					title: TAPi18n.__('SMS_Send'),
+					content : cax,
+					buttons: {
+						cancel: "Abbrechen",
+						ok: TAPi18n.__('SENDEN')
+				    },
 					showCancelButton: true,
 					confirmButtonColor: '#3085d6',
 					cancelButtonColor: '#d33',
-					confirmButtonText: t('Send')
-				}, (isConfirm) => {
+					confirmButtonText: TAPi18n.__('SENDEN')
+				}).then((isConfirm) => {
 					if (isConfirm) {					
 						tel = $("#targetnumber").val();
 						txt = $("#targettext").val();
@@ -310,6 +409,7 @@ Meteor.startup(function(){
 
 		setInterval(function() {
 			RocketChat.tf.validateIncoming ();
-		}, 200);
+		}, 500); 
 	}
 });
+

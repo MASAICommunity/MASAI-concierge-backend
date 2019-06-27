@@ -1,4 +1,10 @@
 import moment from 'moment';
+import swal from 'sweetalert';
+
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
+import { modal, ChatRoom } from 'meteor/rocketchat:ui';
 
 var message = null;
 var messageListenerRegistered = false;
@@ -83,7 +89,6 @@ Meteor.startup(function(){
 		$(document).ready(function() {
 			Meteor.call('masai:retrieveAPI',JSON.stringify([]),
 			function(err, result) {
-				console.log(result);
 				GRANT_URL = result;
 			});
 			

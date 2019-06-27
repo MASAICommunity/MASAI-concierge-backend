@@ -1,4 +1,10 @@
 import moment from 'moment';
+import swal from 'sweetalert';
+
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
+import { modal, ChatRoom } from 'meteor/rocketchat:ui'; 
 
 Template.livechatHistory.helpers({
 	isReady() {
@@ -26,9 +32,17 @@ Template.livechatHistory.events({
 	'click .liveChatOpenBtn'(event, instance) {
 		event.preventDefault();
 		tr = $($(event.target).parents(".liveChatOpenRow"));
-		code = $(event.target).data("code");
+		
+		code = $(event.target).data("id");
 		$(".openerframe").remove();
-		tr.after("<tr class='openerframe'><td colspan='7'><iframe src='/live/"+code+"?nosidebar=1' style='width:100%;height: 600px;'></iframe></td></tr>")
+		if (tr.hasClass("chatIsOpen")) {
+			tr.removeClass("chatIsOpen");
+			return;
+		}
+		tr.after("<tr class='openerframe'><td colspan='7'><iframe src='/live/"+code+"?nosidebar=1' style='width:100%;height: 600px;'></iframe></td></tr>");
+		
+		tr.addClass("chatIsOpen");
+		
 	}, /* click */
 	'submit #searchForm'(event, instance) {
 		event.preventDefault();

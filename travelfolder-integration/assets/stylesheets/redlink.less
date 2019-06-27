@@ -1,25 +1,39 @@
+.swal-modal fieldset input {
+    width: 100%;
+    min-height: 30px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+	padding:5px;
+} 
+.alreadyClosed {
+    padding: 10px;
+    border: 3px solid #ee4444;
+    margin-bottom: 10px;
+    font-weight: 800;
+    color: #ee4444;
+}
+.page-container .padded-table tr td code.codestyle {
+	font-family: 'Courier New';
+}
+.groupset h4 {
+    padding-left: 15px;
+    font-size: 15px;
+    color: currentColor;
+    background-color: white;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
 .full-width {
 width: 100%;
 }
 .p-10 {
 padding:10px;
 }
-form.note-form {
-	padding: 15px;
-}
-form.note-form textarea {
-	width: 100%;
-	min-height: 120px;
-	background-color: white;
-}
 .padded-table tr:nth-child(even) {
 background: #efefef;
 }
 .pull-right {
 float: right;
-}
-.notesplit {
-	border-bottom: 1px solid #ccc;
 }
 span.incomingcount {
 	margin-left: 10px;
@@ -37,15 +51,6 @@ textarea.watsonalternative {
     margin-bottom: 5px;
     min-height: 100px;
 }
-.p-l-15 {
-	padding-left:15px;
-}
-.p-r-15 {
-	padding-right: 15px;
-}
-.p-b-15 {
-	padding-bottom: 15px;
-}
 .p-l-10 {
 	padding-left:10px;
 }
@@ -58,16 +63,16 @@ textarea.watsonalternative {
 .p-b-10 {
 	padding-bottom: 10px;
 }
-.m-t-10 {
-	margin-top: 10px;
-}
-.watsonhint {
+.watsonhint, .tfinput {
 	border: 1px solid #ccc;
 	padding: 5px;
     background-color: #fbfbfb;
     border: 1px solid #ccc;
     padding: 5px;
     margin-bottom: 7px;
+}
+.tfinput {
+	width: 100%;
 }
 .padded-table {
 	th, td {
@@ -85,6 +90,9 @@ textarea.watsonalternative {
 .page-container .padded-table tr:hover td {
 	background-color: #999;
 	color: white;
+}
+.page-container .padded-table tr:hover td code {
+	color: #888;
 }
 .travelfoldercontent {
 	header {
@@ -766,4 +774,47 @@ li .segment{
             }
         }
     }
+}
+tr .row {
+	clear: both;
+	float: none;
+}
+.col-xs-12 {
+	width: 100%;
+	float: left;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+.col-xs-6 {
+	width: 50%;
+	float: left;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+@media (min-width: 1200px) {
+	.col-lg-3 {
+		float: left;
+		width: 25%;
+	}
+}
+.clear-fix{
+	float:none;
+	clear: both;
+}
+@media (min-width: 767px) {
+	.col-sm-3 {
+		float: left;
+		width: 25%;
+	}
+	.col-sm-2 {
+		float: left;
+		width: 16.666%;
+	}
+}
+
+.sidebar-item-small {
+	position: absolute;
+	left: 53px;
+	top: 42px;
+	font-size: 90%;
 }

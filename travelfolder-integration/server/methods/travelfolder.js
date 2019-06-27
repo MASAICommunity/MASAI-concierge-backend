@@ -12,9 +12,15 @@ RocketChat.tf = {};
 RocketChat.models.Messages.updateMany = function(qry, upd) {
 	return this._db.updateMany(qry,upd);
 };
+RocketChat.tf.formatting = function(x, arguments) {
+			var formatted = x;
+			for( var arg in arguments ) {
+				formatted = formatted.replace("{" + arg + "}", arguments[arg]);
+			}
+			return formatted;
+		};
 Meteor.methods({
         'masai:getJourneysForUser'(userId) {
-                console.log(RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
                 const auth0 = Npm.require('auth0-js');
                 var jwt = Npm.require('jsonwebtoken');
                 var uuid = Npm.require('uuid4');
@@ -41,7 +47,6 @@ Meteor.methods({
                 const result = future.wait();
                 let idToken = result.idToken;
                 ;
-                console.log(RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
                 let newToken = jwt.sign(jwtdecode(idToken), RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
                 //  console.log(newToken);
                 const headers_content = {
@@ -84,7 +89,6 @@ Meteor.methods({
                         future.return(authResult);
                 }
                 );
-                console.log(RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
                 const result = future.wait();
                 let idToken = result.idToken;
                 let decodedToken = jwtdecode(idToken);
@@ -107,6 +111,51 @@ Meteor.methods({
                 return {"status" : "200"};
         }
 });
+
+RocketChat.tf.createTransaction = function (room) {
+	
+			const auth0 = Npm.require('auth0-js');
+			var jwt = Npm.require('jsonwebtoken');
+			var jwtdecode = Npm.require('jwt-decode');
+			let auth0init = new auth0.WebAuth({
+			domain: RocketChat.settings.get('Reisebuddy_AUTH0_DOMAIN'), // AUTH0_DOMAIN, // auth0-domain
+					clientID: RocketChat.settings.get('Reisebuddy_AUTH0_CLIENTID'), //AUTH0_CLIENTID //auth0 -ClientID
+			});
+			var future = new Future();
+			auth0init.client.login({
+			realm: RocketChat.settings.get('Reisebuddy_AUTH0_REALM'), //AUTH0_REALM, //connection name or HRD domain
+					username: RocketChat.settings.get('Reisebuddy_AUTH0_USER'), //AUTH0_USER,
+					password: RocketChat.settings.get('Reisebuddy_AUTH0_PW'), //AUTH0_PW,
+					scope: 'openid'
+			}, function (error, authResult) {
+			if (error)
+					future.return(error);
+					else
+					future.return(authResult);
+			}
+			);
+			const result = future.wait();
+			let idToken = result.idToken;
+			let decodedToken = jwtdecode(idToken);
+			let token = {};
+			token.iss = decodedToken.iss;
+			token.sub = decodedToken.sub;
+			token.aud = decodedToken.aud;
+			token.exp = decodedToken.exp;
+			token.iat = decodedToken.iat;
+			let newToken = jwt.sign(token, RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
+			const headers_content = {
+			'Authorization': 'Bearer ' + newToken,
+					'Content-Type': 'application/json'
+			};
+			const payload = {
+				'UserId': {"S" : room.v._id },
+			};
+			var url = RocketChat.settings.get('Reisebuddy_AWS_URL') +'/users/' + room.v._id + '/transaction';
+			 
+			
+			HTTP.post(url, {data : payload, headers: headers_content});
+}
 
 RocketChat.tf.closeMasaiRoom = function( user, room, comment , comment1) {
 		const now = new Date();
@@ -149,6 +198,26 @@ RocketChat.tf.closeMasaiRoom = function( user, room, comment , comment1) {
 	};
 
 Meteor.methods({
+	
+	'masai:closeRoom2'(roomId, comment, reason) {
+		if (!Meteor.userId() || !RocketChat.authz.hasPermission(Meteor.userId(), 'close-livechat-room')) {
+			throw new Meteor.Error('error-not-authorized', 'Not authorized', { method: 'livechat:closeRoom' });
+		}
+
+		const room = RocketChat.models.Rooms.findOneById(roomId);
+
+		const user = Meteor.user();
+
+		if (room.usernames!=null && room.usernames.indexOf(user.username) === -1 && !RocketChat.authz.hasPermission(Meteor.userId(), 'close-others-livechat-room')) {
+			throw new Meteor.Error('error-not-authorized', 'Not authorized', { method: 'livechat:closeRoom' });
+		}
+		const closeMessage = RocketChat.tf.calcGreet(room);
+		va = RocketChat.tf.closeHandling(room, user, comment, closeMessage);
+		
+		RocketChat.models.Subscriptions.removeByRoomId(roomId);
+		RocketChat.tf.createTransaction(room);
+		return va;
+	},
 	'masai:closeRoom'(roomId, comment, reason) {
 		if (!Meteor.userId() || !RocketChat.authz.hasPermission(Meteor.userId(), 'close-livechat-room')) {
 			throw new Meteor.Error('error-not-authorized', 'Not authorized', { method: 'livechat:closeRoom' });
@@ -161,12 +230,24 @@ Meteor.methods({
 		if (room.usernames!=null && room.usernames.indexOf(user.username) === -1 && !RocketChat.authz.hasPermission(Meteor.userId(), 'close-others-livechat-room')) {
 			throw new Meteor.Error('error-not-authorized', 'Not authorized', { method: 'livechat:closeRoom' });
 		}
-
-		return RocketChat.tf.closeMasaiRoom(
+		const closeMessage = RocketChat.tf.calcGreet(room);
+		if (closeMessage) {
+			RocketChat.sendMessage(user, {
+					rid: room._id,
+					_id: Random.id(), 
+					msg: closeMessage,
+					noinq: 1
+				},room);
+		}
+		va = RocketChat.tf.closeMasaiRoom(
 			user,
 			room,
 			comment,reason
 		);
+		
+		RocketChat.models.Subscriptions.removeByRoomId(roomId);
+		RocketChat.tf.createTransaction(room);
+		return va;
 	},
         'masai:mergeRoom' (roomId, comment, others) {
 			room = RocketChat.models.Rooms.findOneById(roomId);
@@ -214,7 +295,6 @@ Meteor.methods({
 					};
 					record.rid = room1._id;
 					delete record._id;
-					console.log('rid'+others[roo]);
 					RocketChat.models.Messages.insert(record);
 				});
 				RocketChat.models.Rooms.update({_id: others[roo]}, {$set: {mergedInto: room1.code}});
@@ -265,7 +345,6 @@ Meteor.methods({
 			token.aud = decodedToken.aud;
 			token.exp = decodedToken.exp;
 			token.iat = decodedToken.iat;
-			console.log(RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
 			let newToken = jwt.sign(token, RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
 			const headers_content = {
 			'Authorization': 'Bearer ' + newToken,
@@ -289,14 +368,30 @@ function getUser(roomId){
     else return null;
 }
 RocketChat.tf.getUser = getUser;
-
 Meteor.methods({
+  'masai:getUser2' (roomId) {
+	room = RocketChat.models.Rooms.findOneById(roomId);
+	let guest = RocketChat.models.Users.findOneById(room.v._id);
+	if (guest) {
+		
+	} else {
+		
+		guest = RocketChat.models.LivechatVisitors.findById(room.v._id).fetch();
+		if (guest==null || guest.length <= 0) {
+		}
+		else {
+			guest = guest[0];
+		}
+	}  
+	return guest;
+  },
   'masai:getUser' (roomId){
     return getUser(roomId);
   }
 });
 Meteor.methods({
-	'masai:getRooms'(visitorToken) {
+	'masai:getRooms'(visitorToken) { 
+	
 		const rooms = RocketChat.models.Rooms.findByVisitorToken(visitorToken, {
 			fields: {
 				name: 1,
@@ -314,11 +409,6 @@ Meteor.methods({
 });
 Meteor.methods({
         'masai:getJWT' (roomId){
-                console.log(RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
-                console.log(RocketChat.settings.get('Reisebuddy_AUTH0_DOMAIN'));
-                console.log(RocketChat.settings.get('Reisebuddy_AUTH0_CLIENTID'));
-                console.log(RocketChat.settings.get('Reisebuddy_AUTH0_USER'));
-                console.log(RocketChat.settings.get('Reisebuddy_AUTH0_PW'));
                 const travelfolder = _dbs.travel_folder;
                 let user = travelfolder.findOne({_id: roomId});
                 var jwt = Npm.require('jsonwebtoken');
@@ -341,10 +431,10 @@ Meteor.methods({
                         future.return(authResult);
                 }
                 );
-                console.log("<<<<<<<<<<<<<<<<<<<<< 2");
+				
                 const result = future.wait();
                 let idToken = result.idToken;
-                console.log("<<<<<<<<<<<<<<<<<<<<< " + idToken);
+				
                 let decodedToken = jwtdecode(idToken);
                 let token = {};
                 token.iss = decodedToken.iss;
@@ -352,16 +442,16 @@ Meteor.methods({
                 token.aud = decodedToken.aud;
                 token.exp = decodedToken.exp;
                 token.iat = decodedToken.iat;
-                console.log(RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
                 let newToken = jwt.sign(token, RocketChat.settings.get('Reisebuddy_AWS_SECRET_KEY'));
                 return {jwt: newToken, orginalresult:result, user: getUser(roomId)};
         },
                 });
         Meteor.methods({
         'masai:addNote' (roomId, noteToSave){
+
 			const me = RocketChat.models.Users.findOneById(Meteor.userId());
-			_dbs.travel_folder_notes.insert({ts: new Date(), userid: me._id,username:me.username,  rid: roomId, note: noteToSave});
-			return _dbs.travel_folder_notes.find({rid: roomId}).fetch();
+        _dbs.travel_folder_notes.insert({rid: roomId, note: noteToSave,username:me.username, ts: new Date()});
+                return _dbs.travel_folder_notes.find({rid: roomId}).fetch();
         }
         });
         Meteor.methods({

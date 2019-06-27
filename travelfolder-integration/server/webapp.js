@@ -9,61 +9,77 @@ WebApp.connectHandlers.use('/watsoncsvdownload', Meteor.bindEnvironment((req, re
 	if (reqUrl.pathname !== '/') {
 	//	return next();
 	}
-	var code = req.url.split('/').length<=0? null :  req.url.split('/')[0];
+	
+	var code = req.query.order;
 	if (code=="") {
 		code = null;
 	}
-	var date = req.url.split('/').length<=1? null :  req.url.split('/')[1];
+	var date = req.query.date1;
 	if (date==undefined) {
 		date = null;
 	} else if (date!=null && date!="") {
 		date = new Date(date);
 	}
-	var date2 = req.url.split('/').length<=2? null :  req.url.split('/')[2];
+	var date2 = req.query.date2;
 	if (date2==undefined) {
 		date2 = null;
 	} else if (date2!=null && date2!="") {
 		date2 = new Date(date2);
 		date2.setHours(23);
 		date2.setMinutes(59);
-		console.log(date2);
 	}
+	var cat = req.query.service;
+	if (cat=="") {
+		cat = null;
+	}else {
+		cat = cat.split(",");
+	}
+	var category =  req.query.category;
+	if (category == null || category=="") {
+		category = null;
+	} 
+	
 	res.setHeader('Content-Encoding','UTF-8');
 	res.setHeader('Content-Disposition', 'attachment; filename=watson.csv');
 	res.setHeader('content-type', 'application/csv; charset=UTF-8');
 
-	var collectionData =  RocketChat.models.Botresult.findMatching2(code,date,date2);
+	var collectionData =  RocketChat.models.Botresult.findMatching2(code,date,date2,cat, category);
 
-	var html = '\ufeffChatID;Chat eingegangen;Antwortzeit;Reaktionszeit;Chat geschlossen;Bearbeitungszeit;Agent-ID;Intent;User-request;Answer-watson;Human_agent;Confidence_Level;Nodes_Visited;Conversation_id;Nodex_Output_Map\n';
+	var html = '\ufeffDienst;ChatID;Chat angenommen;Chat eingegangen;Antwortzeit;Reaktionszeit;Bearbeitungszeit;Chat geschlossen;Agent-ID;Intent;User-request;Answer-watson;Human_agent;Confidence_Level;Category\n';
 	for (i=0;i<collectionData.length;i++) {
-		console.log(collectionData[i]);
+		html += collectionData[i].origin==null?"":collectionData[i].origin;
+		html += ";";
 		html += collectionData[i].code==null?"":collectionData[i].code;
 		html += ";";
-		html += (collectionData[i].startAt==null?"":mom(collectionData[i].startAt).format("D.M.YYYY HH:mm"));
+		
+		html += (collectionData[i].takenTs==null?"":mom(collectionData[i].takenTs).utcOffset(60).format("D.M.YYYY HH:mm:ss"));
 		html += ";";
-		html += (collectionData[i].respondedAt==null?"":mom(collectionData[i].respondedAt).format("D.M.YYYY HH:mm"));
+		html += (collectionData[i].ts==null?"":mom(collectionData[i].ts).utcOffset(60).format("D.M.YYYY HH:mm:ss"));
 		html += ";";
-		endDate = collectionData[i].respondedAt==null||collectionData[i].startAt==null?null:mom(collectionData[i].respondedAt);
+		html += (collectionData[i].respondedAt==null?"":mom(collectionData[i].respondedAt).utcOffset(60).format("D.M.YYYY HH:mm:ss"));
+		html += ";";
+		endDate = collectionData[i].respondedAt==null||collectionData[i].ts==null?null:mom(collectionData[i].respondedAt);
 		if (endDate!=null) {
-			var ms = endDate.diff(mom(collectionData[i].startAt));
+			var ms = 0;
+			ms = endDate.diff(mom(collectionData[i].ts));
+			
 			var d = mom.duration(ms);
 			var s = Math.floor(d.asHours()) + mom.utc(ms).format(":mm:ss");
-			html += s;//(collectionData[i].ts==null?"":mom(collectionData[i].ts).format("D.M.YYYY HH:mm"));
+			html += s;
 		} else {
 			html+="";
 		}
 		html += ";";
-		html += (collectionData[i].closedAt==null?"":mom(collectionData[i].closedAt).format("D.M.YYYY HH:mm"));
-		html += ";";
-		endDate = collectionData[i].closedAt==null||collectionData[i].startAt==null?null:mom(collectionData[i].closedAt);
+		endDate = collectionData[i].processingtime==null||collectionData[i].startAt==null?null:collectionData[i].processingtime;
 		if (endDate!=null) {
-			var ms = endDate.diff(mom(collectionData[i].startAt));
-			var d = mom.duration(ms);
-			var s = Math.floor(d.asHours()) + mom.utc(ms).format(":mm:ss");
-			html += s;//(collectionData[i].ts==null?"":mom(collectionData[i].ts).format("D.M.YYYY HH:mm"));
+			var d = mom.duration(endDate);
+			var s = Math.floor(d.hours())+":"+Math.floor(d.minutes()) + ":"+Math.floor(d.seconds());
+			html += s;
 		} else {
 			html+="";
 		}
+		html += ";";
+		html += (collectionData[i].closedAt==null?"":mom(collectionData[i].closedAt).utcOffset(60).format("D.M.YYYY HH:mm:ss"));
 		html += ";";
 		html += collectionData[i].userid;
 		html += ";";
@@ -77,11 +93,8 @@ WebApp.connectHandlers.use('/watsoncsvdownload', Meteor.bindEnvironment((req, re
 		html += ";";
 		html += collectionData[i].confidence;
 		html += ";";
-		html += (collectionData[i].msg==null?"":collectionData[i].msg.output.nodes_visited==null?"":collectionData[i].msg.output.nodes_visited.toString());
-		html += ";";
-		html += (collectionData[i].msg==null?"":collectionData[i].msg.output.nodes_visited==null?"":collectionData[i].msg.context.conversation_id.toString());
-		html += ";";
-		html += (collectionData[i].msg==null?"":collectionData[i].msg.context.system._node_output_map==null?"":JSON.stringify(collectionData[i].msg.context.system._node_output_map));
+		console.log(collectionData[i]); 
+		html += (collectionData[i].closereason==null?"":collectionData[i].closereason);
 		html += ";\n";
 	}
 	res.write(html);

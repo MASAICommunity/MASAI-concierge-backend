@@ -1,3 +1,8 @@
+
+import { Template } from 'meteor/templating';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { t } from 'meteor/rocketchat:utils';
+import { modal, ChatRoom } from 'meteor/rocketchat:ui';
 Template.travelfolder_tpl.helpers({
 	journeys(){
         var journeys  =   Template.instance().userJourneys.get();
